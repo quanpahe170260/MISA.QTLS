@@ -14,13 +14,14 @@ namespace MISA.QLTS.Core.Entities
         [MISAColumnName("asset_id")]
         public Guid AssetId { get; set; }
         [MISAColumnName("asset_code")]
-        [MISAUnique("mã tài sản")]
+        [MISAUnique("asset_code")]
         [MISARequire("Không được để trống")]
+        [MISAIgnore]
         public string AssetCode { get; set; }
         [MISARequire("Không được để trống")]
         [MISAColumnName("asset_name")]
         public string AssetName { get; set; }
-        [MISAColumnName("date_puschase")]
+        [MISAColumnName("date_purchase")]
         [MISARequire("Không được để trống")]
         public DateTime DatePurchase { get; set; }
         [MISAColumnName("quantity")]

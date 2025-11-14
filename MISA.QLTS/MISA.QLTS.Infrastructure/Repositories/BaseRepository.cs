@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MISA.QLTS.Infrastructure.Repositories
@@ -56,16 +57,21 @@ namespace MISA.QLTS.Infrastructure.Repositories
             var columnBuilder = new StringBuilder();
             var columnParamBuilder = new StringBuilder();
             var parameters = new DynamicParameters();
-            foreach(var property in properties)
+            var propKey = MISAAttributeHelper<T>.GetPrimaryKey();
+            var uniqueAttr = MISAAttributeHelper<T>.GetUniqueAttr();
+            foreach (var property in properties)
             {
-                var propKey = MISAAttributeHelper<T>.GetPrimaryKey();
-                if(propKey != null)
+                var columnAttr = property.GetCustomAttribute<MISAColumnName>();
+                var columnName = columnAttr != null ? columnAttr.ColumnName : property.Name;
+                if(columnName.Equals(propKey))
                 {
                     property.SetValue(entity, Guid.NewGuid());
                 }
-
-                var columnAttr = property.GetCustomAttribute<MISAColumnName>();
-                var columnName = columnAttr != null ? columnAttr.ColumnName : property.Name;
+                if (columnName.Equals(uniqueAttr))
+                {
+                    var newCode = await GenerateCode();
+                    property.SetValue(entity, newCode);
+                }
                 columnBuilder.Append($"{columnName},");
                 columnParamBuilder.Append($"@{columnName},");
                 parameters.Add($"@{columnName}", property.GetValue(entity));
@@ -109,6 +115,54 @@ namespace MISA.QLTS.Infrastructure.Repositories
             var sql = $"UPDATE {tableName} SET {setClause} WHERE {propKey} = @entityId";
             using var connection = _context.CreateConnection();
             var row = await connection.ExecuteAsync(sql, parameters);
+            return row;
+        }
+
+        public async Task<string> GenerateCode()
+        {   
+            var tableName = MISAAttributeHelper<T>.GetTableName();
+            var uniqueAttr = MISAAttributeHelper<T>.GetUniqueAttr();
+            var sql = $"SELECT {uniqueAttr} FROM {tableName} order BY {uniqueAttr} DESC LIMIT 1";
+            using var connection = _context.CreateConnection();
+            var data = await connection.QueryFirstOrDefaultAsync<string>(sql);
+            if(data == null)
+            {
+                return "TS00001";
+            }
+            var code = IncreaseCode(data);
+            return code;
+        }
+
+        private string IncreaseCode(string lastCode)
+        {
+            var match = Regex.Match(lastCode, @"(\d+)$");
+
+            if (!match.Success)
+                throw new Exception("Code format invalid");
+
+            string numberPart = match.Value;              
+            int number = int.Parse(numberPart);     
+            number++;                         
+
+            string newNumberPart = number.ToString(new string('0', numberPart.Length));
+
+            return lastCode.Substring(0, lastCode.Length - numberPart.Length) + newNumberPart;
+        }
+
+        public async Task<int> DeleteMultipleAsync(List<Guid> entitiesId)
+        {
+            var tableName = MISAAttributeHelper<T>.GetTableName();
+            var propKey = MISAAttributeHelper<T>.GetPrimaryKey();
+            var lsIdBuilder = new StringBuilder();
+            foreach(var entity in entitiesId)
+            {
+                lsIdBuilder.Append($"'{entity}', ");
+            }
+            var lsId = lsIdBuilder.ToString().TrimEnd(',',' ');
+            var sql = $"DELETE FROM {tableName} WHERE {propKey} IN ({lsId})";
+            var parameter = new DynamicParameters();
+            using var connection = _context.CreateConnection();
+            var row = await connection.ExecuteAsync(sql);
             return row;
         }
     }
