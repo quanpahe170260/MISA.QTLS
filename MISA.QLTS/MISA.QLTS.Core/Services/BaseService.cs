@@ -1,4 +1,7 @@
-﻿using System;
+﻿using MISA.QLTS.Core.Exceptions;
+using MISA.QLTS.Core.Interfaces.Repositories;
+using MISA.QLTS.Core.Interfaces.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +9,38 @@ using System.Threading.Tasks;
 
 namespace MISA.QLTS.Core.Services
 {
-    public class BaseService
-    {
+    public class BaseService<T> : IBaseService<T> where T : class
+    {   
+        private readonly IBaseRepository<T> _baseRepository;
+        public BaseService(IBaseRepository<T> baseRepository)
+        {
+            _baseRepository = baseRepository;
+        }
+        public async Task<int> DeleteAsync(Guid entityId)
+        {
+            return await _baseRepository.DeleteAsync(entityId);
+        }
+
+        public async Task<IEnumerable<T>> GetAllAsync()
+        {
+            return await _baseRepository.GetAllAsync();
+        }
+
+        public async Task<T?> GetByIdAsync(Guid entityId)
+        {
+            return await _baseRepository.GetByIdAsync(entityId);
+        }
+
+        public async Task<int> InsertAsync(T entity)
+        {
+            return await _baseRepository.InsertAsync(entity);
+        }
+
+        public async Task<int> UpdateAsync(T entity, Guid entityId)
+        {
+            var entityExist = await _baseRepository.GetByIdAsync(entityId);
+            if (entityExist == null) throw new NotFoundException($"{typeof(T).Name} not found");
+            return await _baseRepository.UpdateAsync(entity, entityId);
+        }
     }
 }

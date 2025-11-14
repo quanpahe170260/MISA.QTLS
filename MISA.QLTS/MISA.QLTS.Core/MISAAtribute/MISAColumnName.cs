@@ -9,10 +9,10 @@ namespace MISA.QLTS.Core.MISAAtribute
     [AttributeUsage(AttributeTargets.Property)]
     public class MISAColumnName : Attribute
     {
-        public string columnName { get; set; }
+        public string ColumnName { get; set; }
         public MISAColumnName(string columnName)
         {
-            this.columnName = columnName;
+            ColumnName = columnName;
         }
     }
 }
