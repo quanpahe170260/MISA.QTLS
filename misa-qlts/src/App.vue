@@ -1,11 +1,16 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div class="d-flex flex-direction-row">
+    <the-sidebar />
+    <div class="d-flex flex1 flex-direction-column">
+      <the-header />
+      <RouterView></RouterView>
+    </div>
+  </div>
 </template>
-
+<script setup>
+import TheSidebar from '@/layouts/TheSidebar.vue';
+import TheHeader from '@/layouts/TheHeader.vue';
+import '@/assets/css/base.css';
+import '@/assets/css/icon.css';
+</script>
 <style scoped></style>
