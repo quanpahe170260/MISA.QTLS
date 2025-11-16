@@ -63,10 +63,23 @@
   mask-position: -206px -248px;
 }
 
+.icon-chevron-left-black {
+  width: 6px;
+  height: 8px;
+  mask-position: -206px -248px;
+  background-color: black;
+}
+
 .icon-chevron-right {
   width: 5px;
   height: 8px;
   mask-position: -250px -248px;
+}
+.icon-chevron-right-black {
+  width: 5px;
+  height: 8px;
+  mask-position: -250px -248px;
+  background-color: black;
 }
 
 .icon-chevron-down {
@@ -207,4 +220,25 @@
   height: 10px;
   mask-position: -467px -423px;
   background-color: white;
+}
+
+/* icon edit */
+.icon-edit {
+  width: 16px;
+  height: 16px;
+  background-position: -156px -68px;
+}
+
+/* icon copy */
+.icon-copy {
+  width: 16px;
+  height: 16px;
+  background-position: -244px -112px;
+}
+
+/* icon close */
+.icon-close {
+  width: 18px;
+  height: 18px;
+  background-position: -375px -287px;
 }

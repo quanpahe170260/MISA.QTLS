@@ -59,6 +59,24 @@ namespace MISA.QLTS.Infrastructure.Repositories
             var parameters = new DynamicParameters();
             var propKey = MISAAttributeHelper<T>.GetPrimaryKey();
             var uniqueAttr = MISAAttributeHelper<T>.GetUniqueAttr();
+            var codeProp = typeof(T).GetProperties()
+                .FirstOrDefault(p =>
+                {
+                    var columnAttr = p.GetCustomAttribute<MISAColumnName>();
+                    var columnName = columnAttr != null ? columnAttr.ColumnName : p.Name;
+                    return columnName.Equals(uniqueAttr, StringComparison.OrdinalIgnoreCase);
+                });
+
+            var codeValue = codeProp?.GetValue(entity)?.ToString();
+
+            if (!string.IsNullOrEmpty(codeValue))
+            {
+                var isExist = await CheckCodeExist(codeValue, Guid.Empty);
+                if (isExist)
+                {
+                    throw new Exception($"Mã {codeValue} đã tồn tại, vui lòng chọn mã khác.");
+                }
+            }
             foreach (var property in properties)
             {
                 var columnAttr = property.GetCustomAttribute<MISAColumnName>();
@@ -66,11 +84,6 @@ namespace MISA.QLTS.Infrastructure.Repositories
                 if(columnName.Equals(propKey))
                 {
                     property.SetValue(entity, Guid.NewGuid());
-                }
-                if (columnName.Equals(uniqueAttr))
-                {
-                    var newCode = await GenerateCode();
-                    property.SetValue(entity, newCode);
                 }
                 columnBuilder.Append($"{columnName},");
                 columnParamBuilder.Append($"@{columnName},");
@@ -89,17 +102,31 @@ namespace MISA.QLTS.Infrastructure.Repositories
         {
             var tableName = MISAAttributeHelper<T>.GetTableName() ;
             var propKey = MISAAttributeHelper<T>.GetPrimaryKey() ;
+            var uniqueAttr = MISAAttributeHelper<T>.GetUniqueAttr();
             var parameters = new DynamicParameters() ;
             var properties = typeof(T).GetProperties();
             var clauseBuilder = new StringBuilder();
-            foreach(var  prop in properties)
-            {
-                var ignoreAttr = prop.GetCustomAttribute<MISAUnique>();
-                var ketAttr = prop.GetCustomAttribute<MISAKey>();
-                if(ignoreAttr != null)
+            var codeProp = typeof(T).GetProperties()
+                .FirstOrDefault(p =>
                 {
-                    continue;
+                    var columnAttr = p.GetCustomAttribute<MISAColumnName>();
+                    var columnName = columnAttr != null ? columnAttr.ColumnName : p.Name;
+                    return columnName.Equals(uniqueAttr, StringComparison.OrdinalIgnoreCase);
+                });
+
+            var codeValue = codeProp?.GetValue(entity)?.ToString();
+
+            if (!string.IsNullOrEmpty(codeValue))
+            {
+                var isExist = await CheckCodeExist(codeValue, entityId);
+                if (isExist)
+                {
+                    throw new Exception($"Mã {codeValue} đã tồn tại, vui lòng chọn mã khác.");
                 }
+            }
+            foreach (var  prop in properties)
+            {
+                var ketAttr = prop.GetCustomAttribute<MISAKey>();
                 if(ketAttr != null)
                 {
                     continue;
@@ -122,7 +149,7 @@ namespace MISA.QLTS.Infrastructure.Repositories
         {   
             var tableName = MISAAttributeHelper<T>.GetTableName();
             var uniqueAttr = MISAAttributeHelper<T>.GetUniqueAttr();
-            var sql = $"SELECT {uniqueAttr} FROM {tableName} order BY {uniqueAttr} DESC LIMIT 1";
+            var sql = $"SELECT {uniqueAttr} FROM {tableName} WHERE {uniqueAttr} REGEXP '^TS[0-9]{{5,}}$'  order BY {uniqueAttr} DESC LIMIT 1";
             using var connection = _context.CreateConnection();
             var data = await connection.QueryFirstOrDefaultAsync<string>(sql);
             if(data == null)
@@ -133,6 +160,30 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return code;
         }
 
+        private async Task<bool> CheckCodeExist(string code, Guid entityId)
+        {
+            var tableName = MISAAttributeHelper<T>.GetTableName();
+            var uniqueAttr = MISAAttributeHelper<T>.GetUniqueAttr();
+            var propKey = MISAAttributeHelper<T>.GetPrimaryKey();
+            var parameters = new DynamicParameters();
+            var sql = $"SELECT * FROM {tableName} WHERE {uniqueAttr} = @code AND {propKey} <> @entityId" ;
+            parameters.Add("@code", code);
+            parameters.Add("@entityId", entityId);
+            using var connection = _context.CreateConnection();
+            var data = await connection.QueryFirstOrDefaultAsync<T>(sql, parameters);
+            if(data == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Hàm tăng mã code
+        /// </summary>
+        /// <param name="lastCode">Mã code lớn nhất</param>
+        /// <returns>Mã code</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         private string IncreaseCode(string lastCode)
         {
             var match = Regex.Match(lastCode, @"(\d+)$");

@@ -50,6 +50,11 @@ namespace MISA.QLTS.Core.Interfaces.Repositories
         /// <returns>Số bản ghi bị xóa trong database (>= 1 - thành công, 0 - thất bại)</returns>
         /// CreatedBy: QuanPA - 14/11/2025
         Task<int> DeleteMultipleAsync(List<Guid> entitiesId);
-
+        /// <summary>
+        /// Hàm generate code
+        /// </summary>
+        /// <returns>Code mới</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
+        Task<string> GenerateCode();
     }
 }

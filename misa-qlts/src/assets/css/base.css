@@ -11,6 +11,9 @@
 .flex1 {
   flex: 1;
 }
+.flex2 {
+  flex: 2;
+}
 .justify-content-center {
   justify-content: center;
 }
@@ -231,6 +234,15 @@
 .ml-6 {
   margin-left: 6px;
 }
+.ml-25 {
+  margin-left: 25px !important;
+}
+.ml-45 {
+  margin-left: 45px !important;
+}
+.ml-65 {
+  margin-left: 65px !important;
+}
 .m-24 {
   margin: 24px;
 }
@@ -365,4 +377,9 @@
 /* top */
 .t-0 {
   top: 0 !important;
+}
+
+/* text align */
+.text-align-right {
+  text-align: right;
 }

@@ -1,34 +1,49 @@
 <template>
-    <div class="dropdown-wrapper" @click="toggleDropdown" ref="dropdownRef">
-        <span class="prefix-icon">
-            <slot name="icon"></slot>
-        </span>
+    <div class="dropdown-container">
 
-        <span class="dropdown-label">
-            {{ selectedLabel || placeholder }}
-        </span>
+        <!-- Label -->
+        <label v-if="label" class="dropdown-label-text">
+            {{ label }}
+            <span v-if="required" class="required">*</span>
+        </label>
 
-        <span class="suffix-icon">
-            <slot name="suffix"></slot>
-        </span>
+        <!-- Dropdown -->
+        <div class="dropdown-wrapper" @click="toggleDropdown" ref="dropdownRef" :class="{ disabled: disabled }">
+            <span class="prefix-icon">
+                <slot name="icon"></slot>
+            </span>
 
-        <div v-if="open" class="dropdown-list">
-            <div class="dropdown-item" v-for="option in options" :key="option.value" @click.stop="selectItem(option)"
-                :class="{ selected: option.value === modelValue }">
-                <span class="check-icon" v-if="option.value === modelValue">✔</span>
-                {{ option.label }}
+            <span class="dropdown-label">
+                {{ selectedLabel || placeholder }}
+            </span>
+
+            <span class="suffix-icon">
+                <slot name="suffix"></slot>
+            </span>
+
+            <div v-if="open" class="dropdown-list">
+                <div class="dropdown-item" v-for="option in options" :key="option.value"
+                    @click.stop="selectItem(option)" :class="{ selected: option.value === modelValue }">
+                    <span class="check-icon" v-if="option.value === modelValue">✔</span>
+                    {{ option.label }}
+                </div>
             </div>
         </div>
     </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 
 const props = defineProps({
     modelValue: [String, Number],
     options: Array,
-    placeholder: { type: String, default: "Chọn giá trị" }
+    placeholder: { type: String, default: "Chọn giá trị" },
+    label: { type: String, default: null },     // 👈 mặc định null
+    required: { type: Boolean, default: null }, // 👈 mặc định null
+    disabled: { type: Boolean, default: false }
 });
+
 const emit = defineEmits(["update:modelValue"]);
 
 const open = ref(false);
@@ -40,6 +55,7 @@ const selectedLabel = computed(() => {
 });
 
 function toggleDropdown() {
+    if (props.disabled) return;
     open.value = !open.value;
 }
 

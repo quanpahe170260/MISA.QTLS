@@ -36,6 +36,16 @@ namespace MISA.QLTS.API.Controllers
             return Ok(ApiResponse<T?>.Ok(await _baseService.GetByIdAsync(id)));
         }
         /// <summary>
+        /// API Generate code
+        /// </summary>
+        /// <returns>code được generate</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
+        [HttpGet("generate")]
+        public async Task<IActionResult> GenerateCode()
+        {
+            return Ok(ApiResponse<string>.Ok(await _baseService.GenerateCode()));
+        }
+        /// <summary>
         /// API Thêm bản ghi
         /// </summary>
         /// <param name="entity">Bản ghi cần thêm</param>
@@ -53,8 +63,8 @@ namespace MISA.QLTS.API.Controllers
         /// <param name="entityId">Id của bản ghi cần sửa</param>
         /// <returns>Số bản ghi được sửa</returns>
         /// CreatedBy: QuanPA - 14/11/2025
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody]T entity, [FromQuery]Guid entityId)
+        [HttpPut("{entityId}")]
+        public async Task<IActionResult> Update([FromBody]T entity, [FromRoute] Guid entityId)
         {
             return Ok(ApiResponse<int>.Ok(await _baseService.UpdateAsync(entity, entityId)));
         }

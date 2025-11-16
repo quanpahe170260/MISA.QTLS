@@ -70,7 +70,7 @@ function toggleSidebar() {
     width: 230px;
     background-color: #1c3048;
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, .16);
-    height: 100vh;
+    min-height: 100vh;
     color: white;
     /* transition: width 0.3s; */
 }

@@ -15,7 +15,7 @@ namespace MISA.QLTS.API.Controllers
         {
             _assetService = assetService;
         }
-        [HttpGet("/paging")]
+        [HttpGet("paging")]
         public async Task<IActionResult> GetAllAssetPaging([FromQuery] string? search, [FromQuery] string? departmentID, [FromQuery] string? assetTypeID, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             return Ok(ApiResponse<PagedResult<AssetResponseDTO>>.Ok(await _assetService.GetPagedAsync(page, pageSize, departmentID, assetTypeID, search)));

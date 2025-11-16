@@ -16,22 +16,25 @@ namespace MISA.QLTS.Core.Entities
         [MISAColumnName("asset_code")]
         [MISAUnique("asset_code")]
         [MISARequire("Không được để trống")]
-        [MISAIgnore]
         public string AssetCode { get; set; }
         [MISARequire("Không được để trống")]
         [MISAColumnName("asset_name")]
         public string AssetName { get; set; }
         [MISAColumnName("date_purchase")]
         [MISARequire("Không được để trống")]
+        
         public DateTime DatePurchase { get; set; }
         [MISAColumnName("quantity")]
         [MISARequire("Không được để trống")]
+        [MISAMinMax(0, double.MaxValue)]
         public decimal Quantity { get; set; }
         [MISAColumnName("original_price")]
         [MISARequire("Không được để trống")]
+        [MISAMinMax(0, double.MaxValue)]
         public decimal OriginalPrice { get; set; }
         [MISAColumnName("depreciation_value_year")]
         [MISARequire("Không được để trống")]
+        [MISAMinMax(0, double.MaxValue)]
         public decimal DepreciationValueYear { get; set; }
         [MISAColumnName("asset_type_id")]
         [MISARequire("Không được để trống")]

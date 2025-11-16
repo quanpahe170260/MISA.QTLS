@@ -1,3 +1,20 @@
+.dropdown-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dropdown-label-text {
+  font-size: 14px;
+  color: #333;
+}
+
+.required {
+  color: red;
+  margin-left: 2px;
+}
+
+/* --- DROPDOWN --- */
 .dropdown-wrapper {
   border: 2px solid #ddd;
   border-radius: 2.5px;
@@ -11,6 +28,12 @@
   position: relative;
   max-width: 220px;
   width: 100%;
+}
+
+.dropdown-wrapper.disabled {
+  background: #f3f3f3;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .prefix-icon,
@@ -47,11 +70,11 @@
 }
 
 .dropdown-item:hover {
-  background: #e7f1ff; /* xanh nhạt hover */
+  background: #e7f1ff;
 }
 
 .selected {
-  background: #dbeafe; /* xanh nhạt */
+  background: #dbeafe;
   font-weight: 600;
 }
 

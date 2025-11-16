@@ -1,83 +1,56 @@
 <template>
-    <div :class="['input-wrapper', inputComponentStyle]">
-        <label>
-            <slot name="label"></slot>
+    <div class="input-group">
+        <label class="input-label">
+            {{ label }}
+            <span v-if="required" class="required">*</span>
         </label>
 
-        <div class="select-container" v-if="type === 'select'">
-            <slot name="icon"></slot>
-            <select v-model="internalValue" :id="selectId" :class="['ms-input', selectClass || 'w-100']">
-                <option v-for="(option, index) in options" :key="index" :value="option.value" :selected="selected">
-                    {{ option.label }}
-                </option>
-            </select>
-            <slot name="suffix"></slot>
-        </div>
-
-        <textarea v-else-if="type === 'textarea'" v-model="internalValue" class="ms-input"></textarea>
-
-        <input v-else v-model="internalValue" :class="['ms-input', 'w-100', inputStyle]" :placeholder="placeholder"
-            :type="type" :name="name" @input="$updateInputValid" :value="modelValue" />
+        <input class="input-control" :class="{ disabled: disabled }" :placeholder="placeholder" :disabled="disabled"
+            :value="modelValue" @input="onInput" @blur="$emit('blur', $event)" @focus="$emit('focus', $event)"
+            :type="type" />
     </div>
 </template>
 
-
 <script setup>
-import { computed } from 'vue'
 const props = defineProps({
-    type: {
+    modelValue: {
+        type: [String, Number],
+        default: ''
+    },
+    label: {
         type: String,
-        default: 'text'
+        default: ''
     },
     placeholder: {
         type: String,
         default: ''
     },
-    name: {
-        type: String,
-        require: false,
-        default: ""
-    },
-    modelValue: {
-        type: [String, Number],
-        default: ''
-    },
-    inputStyle: {
-        type: String,
-        default: null
-    },
-    inputComponentStyle: {
-        type: String,
-        default: null
-    },
-    selectClass: {
-        type: String,
-        default: null
-    },
-    selected: {
+    required: {
         type: Boolean,
         default: false
     },
-    options: {
-        type: Array,
-        default: () => [],
+    disabled: {
+        type: Boolean,
+        default: false
     },
-    selectId: {
+    type: {
         type: String,
-        default: null
-    },
-    icon: {
-        type: String,
-        default: null
+        default: 'text'
     }
 })
 
-const emit = defineEmits(['update:modelValue'])
-const internalValue = computed({
-    get: () => props.modelValue,
-    set: (val) => emit('update:modelValue', val),
-})
+const emit = defineEmits(["update:modelValue", "blur", "focus"])
+
+function onInput(e) {
+    let val = e.target.value
+    if (props.type === "number") {
+        val = val === "" ? null : Number(val)
+    }
+    emit("update:modelValue", val)
+}
+
 </script>
-<style scope>
-@import '@/assets/components/ms-input/MsInput.css'
+
+<style scoped>
+@import '@/assets/components/ms-input/MsInput.css';
 </style>

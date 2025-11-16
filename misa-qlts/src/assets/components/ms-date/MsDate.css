@@ -1,0 +1,25 @@
+.date-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.date-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.required {
+  color: red;
+  margin-left: 3px;
+}
+
+.date-picker,
+.date-input-wrapper .p-inputtext {
+  width: 100%;
+}
+
+.date-input-wrapper .p-inputtext {
+  height: 38px;
+}

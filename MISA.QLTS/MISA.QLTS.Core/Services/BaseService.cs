@@ -28,6 +28,11 @@ namespace MISA.QLTS.Core.Services
             return await _baseRepository.DeleteMultipleAsync(entitiesId);
         }
 
+        public async Task<string> GenerateCode()
+        {
+            return await _baseRepository.GenerateCode();
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _baseRepository.GetAllAsync();
@@ -52,18 +57,41 @@ namespace MISA.QLTS.Core.Services
             return await _baseRepository.UpdateAsync(entity, entityId);
         }
 
+        /// <summary>
+        /// Hàm validate dữ liệu
+        /// </summary>
+        /// <param name="entity">entity validate dữ liệu</param>
+        /// <returns></returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task ValidateData(T entity)
         {
             var properties = typeof(T).GetProperties();
             foreach (var property in properties)
             {
+                var value = property.GetValue(entity);
                 var requiredAttr = property.GetCustomAttributes(typeof(MISARequire), true);
                 if(requiredAttr.Length > 0)
                 {
-                    var value = property.GetValue(entity);
                     if(value == null || value is string str && string.IsNullOrEmpty(str))
                     {
                         throw new ValidateException($"{property.Name} không được để trống");
+                    }
+                }
+
+                var minMaxAttr = property.GetCustomAttribute<MISAMinMax>();
+                if (minMaxAttr != null && value != null)
+                {
+                    double numericValue = 0;
+
+                    if (value is int i) numericValue = i;
+                    else if (value is decimal d) numericValue = (double)d;
+                    else if (value is double db) numericValue = db;
+                    else
+                        throw new ValidateException($"{property.Name} không phải là số");
+
+                    if (numericValue < minMaxAttr.Min || numericValue > minMaxAttr.Max)
+                    {
+                        throw new ValidateException($"{property.Name} phải nằm trong khoảng {minMaxAttr.Min} đến {minMaxAttr.Max}");
                     }
                 }
             }
