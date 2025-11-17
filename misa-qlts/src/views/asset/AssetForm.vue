@@ -1,55 +1,87 @@
 <template>
-    <AssetEditModal :is-open="isOpen" title="Sửa tài sản" @close="$emit('close')">
+    <ms-modal :is-open="isOpen" :title="modalTitle" @close="$emit('close')">
         <template #body>
             <div class="form-body">
                 <div class="row d-flex flex-direction-row">
                     <div class="d-flex flex1 flex-direction-column">
+                        <!-- Mã tài sản -->
                         <div class="form-group">
-                            <ms-input label="Mã tài sản" v-model="assetCode" required />
+                            <ms-input label="Mã tài sản" v-model="generateCode" required placeholder="Mã tài sản" />
                         </div>
+                        <!-- Mã bộ phận sử dụng -->
                         <div class="form-group">
-                            <ms-select label="Mã bộ phận sử dụng" require :options="assetTypeOptions">
+                            <ms-select label="Mã bộ phận sử dụng" v-model="selectedDepartmentId" required
+                                :options="lsDepartment" placeholder="Chọn mã bộ phận sử dụng">
                                 <template #suffix>
                                     <i class="icon-default icon-chevrons-down"></i>
                                 </template>
                             </ms-select>
                         </div>
+                        <!-- Mã loại tài sản -->
                         <div class="form-group">
-                            <ms-select label="Mã loại tài sản" require :options="assetTypeOptions">
+                            <ms-select label="Mã loại tài sản" v-model="selectedAssetTypeId" required
+                                :options="lsAssetType" placeholder="Chọn mã loại tài sản">
                                 <template #suffix>
                                     <i class="icon-default icon-chevrons-down"></i>
                                 </template>
                             </ms-select>
                         </div>
+                        <!-- Số lượng -->
                         <div class="form-group">
-                            <ms-date label="Ngày mua" required=""></ms-date>
+                            <ms-input label="Số lượng" v-model="assetCode" required="" type="number" />
+                        </div>
+                        <!-- Ngày mua -->
+                        <div class="form-group">
+                            <!-- <ms-date label="Ngày mua" required=""></ms-date> -->
+                            <label for="purchase-date">Ngày mua<span class="required">*</span></label>
+                            <input type="date" placeholder="dd/MM/yyyy" style="height: 32px;"
+                                v-model="formData.datePurchase" />
+                        </div>
+                        <!-- Số năm sử dụng -->
+                        <div class="form-group">
+                            <ms-input label="Số năm sử dụng" v-model="yearOfUse" required="" type="number" />
                         </div>
                     </div>
                     <div class="d-flex flex2 flex-direction-column">
+                        <!-- Tên tài sản -->
                         <div class="form-group">
-                            <ms-input label="Tên tài sản" v-model="assetCode" required />
+                            <ms-input label="Tên tài sản" v-model="assetTypeName" required placeholder="Tên tài sản" />
                         </div>
+                        <!-- Tên bộ phận sử dụng -->
                         <div class="form-group">
-                            <ms-input label="Tên bộ phận sử dụng" v-model="assetCode" :disabled="true" />
+                            <ms-input label="Tên bộ phận sử dụng" v-model="departmentName" :disabled="true" />
                         </div>
+                        <!-- Tên loại tài sản -->
                         <div class="form-group">
-                            <ms-input label="Tên loại tài sản" v-model="assetCode" :disabled="true" />
+                            <ms-input label="Tên loại tài sản" v-model="assetTypeName" :disabled="true" />
                         </div>
                         <div class="d-flex flex-direction-row">
                             <div class="d-flex flex-direction-column flex1 mr-16 ">
+                                <!-- Nguyên giá -->
                                 <div class="form-group">
-                                    <ms-input label="Nguyên giá" v-model="assetCode" required="" />
+                                    <ms-input label="Nguyên giá" v-model="originalPrice" required="" />
                                 </div>
+                                <!-- Giá trị hao mòn năm -->
                                 <div class="form-group">
-                                    <ms-input label="Giá trị hao mòn năm" v-model="assetCode" required="" />
+                                    <ms-input label="Giá trị hao mòn năm" v-model="annualDepreciation" required="" />
+                                </div>
+                                <!-- Ngày mua -->
+                                <div class="form-group">
+                                    <!-- <ms-date label="Ngày mua" required=""></ms-date> -->
+                                    <label for="purchase-date">Ngày bắt đầu sử dụng<span
+                                            class="required">*</span></label>
+                                    <input type="date" placeholder="dd/MM/yyyy" style="height: 32px;"
+                                        v-model="formData.datePurchase" />
                                 </div>
                             </div>
                             <div class="d-flex flex-direction-column flex1">
+                                <!-- Tỷ lệ hao mòn -->
                                 <div class="form-group">
-                                    <ms-input label="Tỷ lệ hao mòn (%)" v-model="assetCode" required="" />
+                                    <ms-input label="Tỷ lệ hao mòn (%)" v-model="wareRate" required="" />
                                 </div>
+                                <!-- Năm theo dõi -->
                                 <div class="form-group">
-                                    <ms-input label="Năm theo dõi" v-model="assetCode" :disabled="true" />
+                                    <ms-input label="Năm theo dõi" v-model="currentYear" :disabled="true" />
                                 </div>
                             </div>
                         </div>
@@ -59,87 +91,234 @@
         </template>
 
         <template #actions>
-            <button class="btn btn-secondary" @click="$emit('cancel')">Hủy</button>
-            <button class="btn btn-primary" @click="saveAsset">Lưu</button>
+            <ms-button type="secondary" @click="$emit('cancel')" buttonComponentStyle="btn-modal">
+                <p class="btn-text">Hủy</p>
+            </ms-button>
+            <ms-button type="primary" @click="saveAsset" buttonComponentStyle="btn-modal">
+                <p class="btn-text">Lưu</p>
+            </ms-button>
         </template>
 
-    </AssetEditModal>
+    </ms-modal>
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue';
-import AssetEditModal from '@/components/ms-modal/MsModal.vue'; // Import component modal
+import { computed, ref, onMounted, watch } from 'vue';
+import MsModal from '@/components/ms-modal/MsModal.vue';
 import MsButton from '@/components/ms-button/MsButton.vue';
 import MsInput from '@/components/ms-input/MsInput.vue';
 import MsSelect from '@/components/ms-select/MsSelect.vue';
-import MsDate from '@/components/ms-date/MsDate.vue';
-// Khai báo props và emits
-defineProps({
+// import MsDate from '@/components/ms-date/MsDate.vue';
+import AssetTypeApi from '@/apis/components/AssetTypeApi.js';
+import DepartmentApi from '@/apis/components/DepartmentApi.js';
+import AssetApi from '@/apis/components/AssetApi.js';
+
+const lsAssetType = ref([]);
+const lsDepartment = ref([]);
+const generateCode = ref('');
+const selectedDepartmentId = ref(null);
+const selectedAssetTypeId = ref(null);
+const departmentName = ref("");
+const assetTypeName = ref("");
+const yearOfUse = ref(0);
+const wareRate = ref(0);
+const currentYear = new Date().getFullYear();
+const originalPrice = ref(0);
+const annualDepreciation = ref(0);
+const localData = ref({
+    assetId: null,
+    assetCode: '',
+    assetName: '',
+    datePurchase: new Date().toISOString().split("T")[0],
+    quantity: 0,
+    originalPrice: 0,
+    depreciationValueYear: 0,
+    assetTypeId: null,
+    departmentId: null,
+});
+//#region Props
+const props = defineProps({
     isOpen: {
         type: Boolean,
         required: true
-    }
+    },
+    mode: { type: String, default: 'add' },
+    data: { type: Object, default: () => ({}) }
 });
+//#endregion
+
+//#region Emits
 const emit = defineEmits(['close', 'cancel', 'save']);
-const assetTypeOptions = [
-    { value: '0', label: 'Chọn giới tính', selected: 'true' },
-    { value: '1', label: 'Nam' },
-    { value: '2', label: 'Nữ' }
-];
-// Dữ liệu form
-const formData = reactive({
-    assetCode: 'TS00001',
-    assetName: 'Laptop Dell 357GE Black 01',
-    departmentCode: 'HCTH',
-    roomName: 'Phòng Hành chính Tổng hợp',
-    assetTypeCode: 'MTXT',
-    assetTypeName: 'Máy tính xách tay',
-    quantity: 1,
-    originalPrice: 10000000,
-    wearRate: 'TS00001',
+//#endregion
+
+const formData = ref({
+    datePurchase: new Date().toISOString().split("T")[0]
 });
+
+/**
+ * Hàm lấy danh sách bộ phận
+ * @return danh sách bộ phận
+ * CreatedBy: QuanPA - 17/11/2025
+ */
+async function getAllDepartment() {
+    try {
+        const response = await DepartmentApi.getAll();
+        return response.data.data.map(item => ({
+            value: item.departmentId,
+            label: item.departmentAbbreviated,
+            nameDepart: item.departmentName
+        }));
+    }
+    catch (error) {
+        console.log("Lỗi lấy danh sách bộ phận", error);
+    }
+}
+
+/**
+ * Hàm tạo mã tài sản
+ * @return mã tài sản
+ * CreatedBy: QuanPA - 17/11/2025
+ */
+async function generateAssetCode() {
+    try {
+        const response = await AssetApi.generateAssetCode();
+        return response.data.data;
+    } catch (error) {
+        console.log("Lỗi tạo mã tài sản", error);
+    }
+}
+
+/**
+ * Hàm lấy danh sách loại tài sản
+ * @return danh sách loại tài sản
+ * CreatedBy: QuanPA - 17/11/2025
+ */
+async function getAllAssetType() {
+    try {
+        const response = await AssetTypeApi.getAll()
+        return response.data.data.map(item => ({
+            value: item.assetTypeId,
+            label: item.assetTypeAbbreviated,
+            nameAssetType: item.assetTypeName,
+            yearOfUse: item.yearOfUse,
+            wareRate: item.wearRate
+        }));
+    }
+    catch (error) {
+        console.log("Lỗi lấy danh sách loại tài sản", error);
+    }
+}
+
+onMounted(async () => {
+    lsAssetType.value = await getAllAssetType();
+    lsDepartment.value = await getAllDepartment();
+    generateCode.value = await generateAssetCode();
+});
+
+/**
+ * Hàm lưu tài sản
+ * CreatedBy: QuanPA - 17/11/2025
+ */
+const saveAsset = async () => {
+    try {
+        const payload = {
+            assetCode: generateCode.value,
+            assetName: assetTypeName.value,
+            datePurchase: formData.value.datePurchase,
+            quantity: parseFloat(formData.value.quantity) || 1,
+            originalPrice: parseFloat(originalPrice.value),
+            depreciationValueYear: parseFloat(annualDepreciation.value),
+            assetTypeId: selectedAssetTypeId.value,
+            departmentId: selectedDepartmentId.value,
+        };
+        let response;
+        if (props.mode === 'add') {
+            response = await AssetApi.create(payload);
+        } else if (props.mode === 'edit') {
+            payload.assetId = localData.value.assetId;
+            response = await AssetApi.update(localData.value.assetId, payload);
+        }
+        if (response && response.data && response.data.success) {
+            alert("Tạo tài sản thành công!");
+            emit('save', payload);
+            emit('close');
+        } else {
+            alert("Tạo tài sản thất bại!");
+        }
+    }
+    catch (error) {
+        console.log("Lỗi tạo tài sản", error);
+    }
+}
 
 // Logic format tiền tệ
-const formatCurrency = (value) => {
-    if (value === null || value === undefined || value === '') return '';
-    return new Intl.NumberFormat('vi-VN').format(value);
-};
+// const formatCurrency = (value) => {
+//     if (value === null || value === undefined || value === '') return '';
+//     return new Intl.NumberFormat('vi-VN').format(value);
+// };
 
-const formattedOriginalPrice = computed({
-    get() {
-        return formatCurrency(formData.originalPrice);
-    },
-    set(newValue) {
-        const numericValue = parseInt(newValue.replace(/\./g, ''), 10);
-        formData.originalPrice = isNaN(numericValue) ? 0 : numericValue;
+// const formattedOriginalPrice = computed({
+//     get() {
+//         return formatCurrency(formData.value.originalPrice);
+//     },
+//     set(newValue) {
+//         const numericValue = parseInt(newValue.replace(/\./g, ''), 10);
+//         formData.value.originalPrice = isNaN(numericValue) ? 0 : numericValue;
+//     }
+// });
+
+//#region Computed
+const modalTitle = computed(() => {
+    return props.mode === 'add' ? 'Thêm tài sản' : 'Sửa tài sản';
+});
+//#endregion
+
+//#region watch
+watch(selectedDepartmentId, (newVal) => {
+    const found = lsDepartment.value.find(x => x.value === newVal);
+    departmentName.value = found ? found.nameDepart : "";
+});
+watch(selectedAssetTypeId, (newVal) => {
+    const found = lsAssetType.value.find(x => x.value === newVal);
+    assetTypeName.value = found ? found.nameAssetType : "";
+    yearOfUse.value = found ? found.yearOfUse : '';
+    wareRate.value = found ? found.wareRate : '';
+});
+watch([originalPrice, wareRate], ([newPrice, newRate]) => {
+    const price = parseFloat(newPrice);
+    const rate = parseFloat(newRate);
+    if (!isNaN(price) && !isNaN(rate)) {
+        annualDepreciation.value = price * rate / 100;
+    } else {
+        annualDepreciation.value = '';
     }
 });
+watch(() => props.data, (newVal) => {
+    if (props.mode === 'edit' && newVal) {
+        localData.value = { ...newVal };
+        generateCode.value = newVal.assetCode;
+        assetTypeName.value = newVal.assetName;
+        originalPrice.value = newVal.originalPrice;
+        selectedAssetTypeId.value = newVal.assetTypeId;
+        selectedDepartmentId.value = newVal.departmentId;
+        formData.value.datePurchase = newVal.datePurchase;
+        originalPrice.value = newVal.originalPrice;
+        wareRate.value = newVal.wearRate;
+    }
+    console.log('localData', localData);
+}, { immediate: true });
 
-// Xử lý sự kiện lưu
-const saveAsset = () => {
-    console.log('Dữ liệu được lưu:', formData);
-    emit('save', formData);
-};
+//#endregion
 </script>
 
 <style scoped>
-/* -------------------------------------- */
-/* CSS Layout Form (từ hình ảnh) */
-/* -------------------------------------- */
-* {
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
 .form-body {
     padding: 0px 16px 0px 14px;
-    /* Mô phỏng padding trong hình */
 }
 
 .row {
     display: flex;
     gap: 16px;
-    /* Khoảng cách giữa 2 cột */
 }
 
 .col {
@@ -163,7 +342,6 @@ const saveAsset = () => {
     flex: 1;
 }
 
-/* Label */
 label {
     font-size: 13px;
     color: #555;
@@ -173,24 +351,6 @@ label {
 
 .required {
     color: red;
-}
-
-/* Input/Select Fields */
-input[type="text"],
-input[type="number"],
-select {
-    height: 36px;
-    padding: 0 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #333;
-    appearance: none;
-    background-color: #fff;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><polyline points="6 9 12 15 18 9"></polyline></svg>');
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    cursor: pointer;
 }
 
 input[type="number"] {
@@ -207,43 +367,10 @@ select {
     padding-right: 30px;
 }
 
-/* Focus State */
 input:focus,
 select:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     outline: none;
-}
-
-/* -------------------------------------- */
-/* CSS Nút hành động */
-/* -------------------------------------- */
-.btn {
-    padding: 8px 16px;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    height: 36px;
-}
-
-.btn-primary {
-    background-color: #007bff;
-    color: white;
-    border: 1px solid #007bff;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-}
-
-.btn-secondary {
-    background-color: #fff;
-    color: #333;
-    border: 1px solid #ccc;
-}
-
-.btn-secondary:hover {
-    background-color: #e9ecef;
 }
 </style>

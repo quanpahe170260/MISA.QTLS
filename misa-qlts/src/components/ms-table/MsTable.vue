@@ -4,10 +4,11 @@
             <thead>
                 <tr>
                     <th class="col-check">
-                        <input type="checkbox" class="square-checkbox" v-model="selectAll" @change="toggleSelectAll" />
+                        <input type="checkbox" class="square-checkbox" :checked="isAllSelected"
+                            @change="toggleSelectAll" />
                     </th>
 
-                    <th v-for="(col, i) in localCols" :key="col.key" :ref="el => { if (el) columnHeaders[i] = el }"
+                    <th v-for="(col, i) in visibleCols" :key="col.key" :ref="el => { if (el) columnHeaders[i] = el }"
                         :style="{ width: col.width + 'px', textAlign: col.align || 'left' }" class="col-header">
                         {{ col.label }}
 
@@ -22,19 +23,25 @@
             </thead>
 
             <tbody>
-                <tr v-for="(row, rindex) in rows" :key="row.id"
-                    :class="{ selected: isSelected(row.id), focused: focusIndex === rindex }"
-                    @click="onRowClick(row, rindex, $event)">
+                <tr v-for="(row, rindex) in rows" :key="row[props.rowKey]"
+                    :class="{ selected: isSelected(row[props.rowKey]), focused: focusIndex === rindex }" @click.stop>
 
-                    <td class="row-check"><input type="checkbox" class="square-checkbox"
-                            :checked="isSelected(row.id)" /></td>
+                    <td class="row-check">
+                        <input type="checkbox" class="square-checkbox" :checked="isSelected(row[props.rowKey])"
+                            @change="onCheckboxClick(row[props.rowKey], $event)" />
+                    </td>
 
-                    <td v-for="col in localCols" :key="col.key" :style="{ textAlign: col.align || 'left' }">
-                        {{ row[col.key] }}
+                    <td v-for="col in visibleCols" :key="col.key" :style="{ textAlign: col.align || 'left' }">
+                        <span v-if="col.key === 'stt'">
+                            {{ (page - 1) * pageSize + rindex + 1 }}
+                        </span>
+                        <span v-else>
+                            {{ row[col.key] }}
+                        </span>
                     </td>
                     <td class="fuction d-flex align-items-center justify-content-space-evently">
-                        <div class="icon-default icon-edit"></div>
-                        <div class="icon-default icon-copy"></div>
+                        <div class="icon-default icon-edit pointer" @click="openEditForm(row)"></div>
+                        <div class="icon-default icon-copy pointer"></div>
                     </td>
                 </tr>
             </tbody>
@@ -71,10 +78,22 @@
             </div>
         </div>
     </div>
+    <asset-form :is-open="isFormOpen" @close="isFormOpen = false" @cancel="isFormOpen = false" @save="handleSave"
+        mode="edit" :data="selectedRow" />
 </template>
 
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted, nextTick } from "vue";
+import AssetForm from '@/views/asset/AssetForm.vue';
+const isFormOpen = ref(false);
+
+const columnHeaders = ref({});
+const rightDataSection = ref(null);
+const columnOffsets = ref([0, 0, 0, 0]);
+const selected = ref([]);
+const focusIndex = ref(0);
+const selectedRow = ref(null);
+//#region Props
 const props = defineProps({
     columns: Array,
     rows: Array,
@@ -83,23 +102,31 @@ const props = defineProps({
     total: Number,
     totals: {
         type: Array,
-        default: () => [0, 0, 0, 0] // [qty, price, hm, remaining]
-    }
+        default: () => [0, 0, 0, 0]
+    },
+    rowKey: {
+        type: String,
+        default: "id"
+    },
 });
+//#endregion
 
+//#region Emits
 const emit = defineEmits(["update:page", "selection-change"]);
+//#endregion
 
 const localCols = ref(JSON.parse(JSON.stringify(props.columns)));
-const columnHeaders = ref({});
-const rightDataSection = ref(null);
-const columnOffsets = ref([0, 0, 0, 0]); // Offsets for 4 total columns
+const openEditForm = (row) => {
+    selectedRow.value = { ...row };
+    isFormOpen.value = true;
+};
 
 /// resize state
 let resizing = false;
 let colIndex = null;
 let startX = 0;
 let startWidth = 0;
-
+const visibleCols = computed(() => localCols.value.filter(col => !col.hidden));
 const startResize = (e, index) => {
     resizing = true;
     colIndex = index;
@@ -123,27 +150,31 @@ const stopResize = () => {
     document.removeEventListener("mouseup", stopResize);
 };
 
-/// --- Selection logic ---
-const selected = ref([]);
-const focusIndex = ref(0);
-
 const isSelected = (id) => selected.value.includes(id);
+const isAllSelected = computed(() => {
+    return selected.value.length === props.rows.length && props.rows.length > 0;
+});
 
-const onRowClick = (row, index, e) => {
-    if (e.shiftKey) {
-        const last = focusIndex.value;
-        const [a, b] = [Math.min(last, index), Math.max(last, index)];
-        selected.value = props.rows.slice(a, b + 1).map(r => r.id);
-    } else if (e.ctrlKey || e.metaKey) {
-        if (isSelected(row.id)) {
-            selected.value = selected.value.filter(i => i !== row.id);
-        } else {
-            selected.value.push(row.id);
+const toggleSelectAll = (e) => {
+    if (e.target.checked) {
+        selected.value = props.rows.map(r => r[props.rowKey]);
+    } else {
+        selected.value = [];
+    }
+    emit("selection-change", selected.value);
+};
+
+const onCheckboxClick = (id, e) => {
+    console.log("Row checkbox clicked:", id, "checked =", e.target.checked);
+    if (e.target.checked) {
+        // Thêm vào selected nếu chưa có
+        if (!selected.value.includes(id)) {
+            selected.value.push(id);
         }
     } else {
-        selected.value = [row.id];
+        // Bỏ khỏi selected
+        selected.value = selected.value.filter(item => item !== id);
     }
-    focusIndex.value = index;
     emit("selection-change", selected.value);
 };
 
@@ -160,19 +191,17 @@ const onKey = (e) => {
     emit("selection-change", selected.value);
 };
 
-/// select all
-const selectAll = ref(false);
-watch(selectAll, (v) => {
-    selected.value = v ? props.rows.map(r => r.id) : [];
-    emit("selection-change", selected.value);
-});
+
 
 /// pagination
 const localPageSize = ref(props.pageSize);
 const maxPage = computed(() =>
     Math.ceil(props.total / localPageSize.value)
 );
-
+watch(localPageSize, (newSize) => {
+    emit("update:pageSize", newSize);
+    emit("update:page", 1);
+});
 const go = (step) => {
     const newPage = props.page + step;
     if (newPage >= 1 && newPage <= maxPage.value) {
@@ -183,8 +212,7 @@ const go = (step) => {
 /// Calculate column positions for totals alignment
 const calculateColumnOffsets = () => {
     nextTick(() => {
-        // Find indices of columns: qty, price, hm, remaining
-        const targetKeys = ['qty', 'price', 'hm', 'remaining'];
+        const targetKeys = ['assetCode', 'assetName', 'assetTypeName', 'departmentName'];
         const targetIndices = targetKeys.map(key =>
             localCols.value.findIndex(col => col.key === key)
         ).filter(idx => idx !== -1);

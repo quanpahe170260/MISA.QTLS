@@ -39,8 +39,8 @@ const props = defineProps({
     modelValue: [String, Number],
     options: Array,
     placeholder: { type: String, default: "Chọn giá trị" },
-    label: { type: String, default: null },     // 👈 mặc định null
-    required: { type: Boolean, default: null }, // 👈 mặc định null
+    label: { type: String, default: null },
+    required: { type: Boolean, default: null },
     disabled: { type: Boolean, default: false }
 });
 

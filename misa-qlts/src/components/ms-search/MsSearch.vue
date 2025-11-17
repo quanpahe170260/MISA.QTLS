@@ -6,31 +6,31 @@
                 <i :class="icon"></i>
             </div>
             <!-- Input -->
-            <input v-model="keySearch" :type="type" :placeholder="placeholder" :class="['search-input', styleInput]"
-                @input="inputSearch" />
+            <input :type="type" :placeholder="placeholder" :class="['search-input', styleInput]" @input="inputSearch"
+                :value="props.modelValue" />
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+//#region Emits
+const emit = defineEmits(['update:modelValue']);
+//#endregion
 
-const keySearch = ref('');
 
-// Emits
-const emit = defineEmits(['search']);
-
-// Props
-defineProps({
+//#region Props
+const props = defineProps({
     icon: { type: String, default: 'icon-default icon-lookup' },
     placeholder: { type: String, default: 'Tìm kiếm...' },
     styleInput: { type: String, default: '' },
     searchComponent: { type: String, default: '' },
-    type: { type: String, default: 'text' }
+    type: { type: String, default: 'text' },
+    modelValue: { type: String, default: '' },
 });
+//#endregion
 
-function inputSearch() {
-    emit('search', keySearch.value);
+function inputSearch(e) {
+    emit('update:modelValue', e.target.value);
 }
 </script>
 <style scoped>

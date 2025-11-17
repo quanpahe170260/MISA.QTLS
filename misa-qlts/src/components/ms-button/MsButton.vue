@@ -35,7 +35,7 @@ const props = defineProps({
         default: () => ({})
     },
     buttonComponentStyle: {
-        type: Array,
+        type: String,
         default: null
     }
 })

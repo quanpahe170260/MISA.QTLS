@@ -52,8 +52,22 @@ td {
   margin-right: 20px;
 }
 
+.square-checkbox:checked {
+  background-color: #1aa4c8;
+  border-color: #1aa4c8;
+}
+
+.square-checkbox:checked::after {
+  content: '';
+  width: 10px;
+  height: 8px;
+  background: url('@/assets/images/qlts-icon.svg') no-repeat -160px -424px;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
 .selected {
-  background-color: rgba(26, 164, 200, 0.2) !important;
+  background-color: rgba(26, 164, 200, 0.2);
 }
 
 .col-header {
@@ -73,7 +87,7 @@ td {
   display: inline-block;
 }
 .m-table tbody tr:hover {
-  background-color: rgba(26, 164, 200, 0.2) !important;
+  background-color: rgba(26, 164, 200, 0.2);
 }
 .resize-handle {
   width: 6px;

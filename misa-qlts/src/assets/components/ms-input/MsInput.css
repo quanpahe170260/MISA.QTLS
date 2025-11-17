@@ -33,3 +33,11 @@
   color: #888;
   cursor: not-allowed;
 }
+.input-error {
+  border-color: red;
+}
+.error-text {
+  color: red;
+  font-size: 12px;
+  margin-top: 2px;
+}

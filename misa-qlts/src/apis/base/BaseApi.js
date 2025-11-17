@@ -39,13 +39,13 @@ export default class BaseApi {
    * @param {*} body
    */
   update(id, body) {
-    return api.put(`${this.controler}/update/${id}`, body)
+    return api.put(`${this.controler}/${id}`, body)
   }
   /**
    * Hàm xóa bản ghi
    * @param {*} id
    */
   delete(id) {
-    return api.delete(`${this.controler}/delete/${id}`)
+    return api.delete(`${this.controler}/${id}`)
   }
 }

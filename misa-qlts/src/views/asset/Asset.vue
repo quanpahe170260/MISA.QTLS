@@ -7,11 +7,11 @@
                 <!-- Search -->
                 <div class="search-content">
                     <ms-search icon="icon-default icon-lookup" placeholder="Tìm kiếm tài sản"
-                        styleInput="border-none search-input" searchComponent="border-1" />
+                        styleInput="border-none search-input" searchComponent="border-1" v-model="search" />
                 </div>
                 <!-- Filter asset type -->
                 <div class="filter-asset-type">
-                    <ms-select v-model="assetType" :options="assetTypeOptions">
+                    <ms-select v-model="assetType" :options="lsAssetType">
                         <template #icon>
                             <i class="icon-default icon-filter"></i>
                         </template>
@@ -22,7 +22,7 @@
                 </div>
                 <!-- Filter department -->
                 <div class="filter-department">
-                    <ms-select v-model="assetType" :options="assetTypeOptions">
+                    <ms-select v-model="department" :options="lsDepartment">
                         <template #icon>
                             <i class="icon-default icon-filter"></i>
                         </template>
@@ -50,11 +50,12 @@
         <div class="flex1">
             <div style="padding: 20px">
                 <ms-table :columns="columns" :rows="lsAssets" :page="page" :page-size="pageSize" :total="total"
-                    @update:page="page = $event" @selection-change="selectedIds = $event" />
+                    @update:page="page = $event" @update:pageSize="pageSize = $event"
+                    @selection-change="selectedIds = $event" rowKey="assetId" />
             </div>
         </div>
     </div>
-    <AssetEditModal :is-open="isFormOpen" @close="isFormOpen = false" @cancel="isFormOpen = false" @save="handleSave" />
+    <asset-form :is-open="isFormOpen" @close="isFormOpen = false" @cancel="isFormOpen = false" @save="handleSave" />
 </template>
 <script setup>
 import MsSearch from '@/components/ms-search/MsSearch.vue';
@@ -62,15 +63,11 @@ import MsSelect from '@/components/ms-select/MsSelect.vue';
 import MsButton from '@/components/ms-button/MsButton.vue';
 import MsTable from '@/components/ms-table/MsTable.vue';
 import AssetApi from '@/apis/components/AssetApi.js';
-import AssetEditModal from '@/views/asset/AssetForm.vue';
-import { ref, onMounted } from "vue";
+import AssetForm from '@/views/asset/AssetForm.vue';
+import DepartmentApi from '@/apis/components/DepartmentApi.js';
+import AssetTypeApi from '@/apis/components/AssetTypeApi';
+import { ref, onMounted, watch } from "vue";
 const lsAssets = ref([]);
-const assetTypeOptions = [
-    { value: '0', label: 'Chọn giới tính', selected: 'true' },
-    { value: '1', label: 'Nam' },
-    { value: '2', label: 'Nữ' }
-];
-
 const search = ref("");
 const department = ref("");
 const assetType = ref("");
@@ -78,7 +75,14 @@ const page = ref(1);
 const pageSize = ref(10);
 const total = ref(200);
 const isFormOpen = ref(false);
-
+const selectedIds = ref([]);
+const lsAssetType = ref([]);
+const lsDepartment = ref([]);
+/**
+ * Hàm lấy tất cả tài sản
+ * return Danh sách tài sản
+ * CreatedBy: QuanPA - 17/11/2025
+ */
 async function getAllAssets() {
     try {
         const response = await AssetApi.getAllAssetPaging(
@@ -95,12 +99,55 @@ async function getAllAssets() {
     }
 }
 
+/**
+ * Hàm lấy danh sách bộ phận
+ * @return danh sách bộ phận
+ * CreatedBy: QuanPA - 17/11/2025
+ */
+async function getAllDepartment() {
+    try {
+        const response = await DepartmentApi.getAll();
+        return response.data.data.map(item => ({
+            value: item.departmentId,
+            label: item.departmentAbbreviated,
+            nameDepart: item.departmentName
+        }));
+    }
+    catch (error) {
+        console.log("Lỗi lấy danh sách bộ phận", error);
+    }
+}
+
+/**
+ * Hàm lấy danh sách loại tài sản
+ * @return danh sách loại tài sản
+ * CreatedBy: QuanPA - 17/11/2025
+ */
+async function getAllAssetType() {
+    try {
+        const response = await AssetTypeApi.getAll()
+        return response.data.data.map(item => ({
+            value: item.assetTypeId,
+            label: item.assetTypeAbbreviated,
+            nameAssetType: item.assetTypeName,
+            yearOfUse: item.yearOfUse,
+            wareRate: item.wearRate
+        }));
+    }
+    catch (error) {
+        console.log("Lỗi lấy danh sách loại tài sản", error);
+    }
+}
+
 onMounted(async () => {
     lsAssets.value = await getAllAssets();
+    lsAssetType.value = await getAllAssetType();
+    lsDepartment.value = await getAllDepartment();
 });
 
 const columns = ref([
     { key: "stt", label: "STT", align: "left" },
+    { key: "assetId", label: "", align: "left", hidden: true },
     { key: "assetCode", label: "Mã tài sản" },
     { key: "assetName", label: "Tên tài sản" },
     { key: "assetTypeName", label: "Loại tài sản" },
@@ -110,8 +157,12 @@ const columns = ref([
     { key: "depreciationValueYear", label: "HM/KM lũy kế", align: "right" },
     { key: "remaining", label: "Giá trị còn lại", align: "right" },
 ]);
-
-const selectedIds = ref([]);
+async function loadData() {
+    lsAssets.value = await getAllAssets();
+}
+watch([search, department, assetType, page, pageSize], () => {
+    loadData();
+});
 </script>
 <style scoped>
 .main-content {

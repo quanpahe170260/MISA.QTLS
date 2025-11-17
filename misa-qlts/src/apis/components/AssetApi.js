@@ -18,5 +18,9 @@ class AssetApi extends BaseAPI {
       },
     })
   }
+
+  generateAssetCode() {
+    return api.get(`${this.controler}/generate`)
+  }
 }
 export default new AssetApi()
