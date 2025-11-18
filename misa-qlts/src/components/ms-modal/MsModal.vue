@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-// Khai báo props để nhận trạng thái đóng mở và tiêu đề
+//#region Props
 defineProps({
     isOpen: {
         type: Boolean,
@@ -32,8 +32,10 @@ defineProps({
     }
 });
 
-// Khai báo emit để component cha có thể đóng modal
+//#endregion
+//#region Emits
 defineEmits(['close']);
+//#endregion
 </script>
 
 <style scoped>

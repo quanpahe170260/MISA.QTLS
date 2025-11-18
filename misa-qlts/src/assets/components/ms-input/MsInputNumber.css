@@ -1,0 +1,79 @@
+.p-inputnumber-input {
+  text-align: end;
+}
+
+.form-input .input-text {
+  padding: 0 14px 0 14px;
+  width: 100%;
+  outline: none;
+  border: 1px solid #ccc !important;
+  border-radius: 2.5px;
+  font-size: 14px;
+  color: #001031;
+  margin-top: 5px;
+  height: 36px;
+}
+.input-text {
+  border: 1px solid #ccc !important;
+}
+.input-number-error .input-text {
+  border: 1px solid red !important;
+}
+::v-deep(.p-inputnumber-input) {
+  text-align: right;
+  margin-right: 14px;
+}
+/* focus */
+.input-text:focus:not(:disabled),
+.input-text:hover:not(:disabled) {
+  border: 1px solid #1aa4c8 !important;
+  outline: none;
+}
+.p-inputnumber-stacked .p-inputnumber-input {
+  padding-inline-end: 36px !important;
+  text-align: right !important;
+}
+
+.error-text {
+  color: red;
+  font-size: 13px;
+  min-height: 16px;
+  display: none;
+}
+.error-text.show {
+  display: block;
+}
+.required-icon {
+  color: red;
+}
+
+.form-input input:disabled {
+  background-color: #00000014;
+  cursor: not-allowed;
+}
+button.p-inputnumber-button.p-inputnumber-decrement-button {
+  width: 32px !important;
+}
+button.p-inputnumber-button.p-inputnumber-increment-button {
+  width: 32px !important;
+}
+
+::v-deep(.p-inputnumber-button-group) {
+  margin-right: 10px;
+}
+
+.p-inputnumber-stacked .p-inputnumber-button-group {
+  height: 20px !important;
+  inset-block-start: 8px !important;
+}
+
+.p-inputnumber-button:not(:disabled):hover,
+.p-inputnumber-button:not(:disabled):hover {
+  background: none !important;
+}
+
+.p-inputtext:enabled:hover,
+.p-inputtext:enabled:focus {
+  border: 1px solid #1aa4c8 !important;
+  outline: none;
+}

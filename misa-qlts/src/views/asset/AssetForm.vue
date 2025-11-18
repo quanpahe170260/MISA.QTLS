@@ -28,24 +28,33 @@
                         </div>
                         <!-- Số lượng -->
                         <div class="form-group">
-                            <ms-input label="Số lượng" v-model="assetCode" required="" type="number" />
+                            <!-- <ms-input label="Số lượng" v-model="assetCode" required="" type="number" /> -->
+                            <ms-input-number tabindex="5" hasButton isRequired size="large" v-model="quantity"
+                                label="Số lượng" />
                         </div>
                         <!-- Ngày mua -->
                         <div class="form-group">
-                            <!-- <ms-date label="Ngày mua" required=""></ms-date> -->
-                            <label for="purchase-date">Ngày mua<span class="required">*</span></label>
+                            <ms-date label="Ngày mua" required="">
+                                <template #icon>
+                                    <i class="icon-default icon-calendar"></i>
+                                </template>
+                            </ms-date>
+                            <!-- <label for="purchase-date">Ngày mua<span class="required">*</span></label>
                             <input type="date" placeholder="dd/MM/yyyy" style="height: 32px;"
-                                v-model="formData.datePurchase" />
+                                v-model="formData.datePurchase" /> -->
                         </div>
                         <!-- Số năm sử dụng -->
                         <div class="form-group">
-                            <ms-input label="Số năm sử dụng" v-model="yearOfUse" required="" type="number" />
+                            <!-- <ms-input label="Số năm sử dụng" v-model="yearOfUse" required="" type="number" /> -->
+                            <ms-input-number tabindex="5" hasButton isRequired size="large" v-model="yearOfUse"
+                                label="Số năm sử dụng" />
                         </div>
                     </div>
                     <div class="d-flex flex2 flex-direction-column">
                         <!-- Tên tài sản -->
                         <div class="form-group">
-                            <ms-input label="Tên tài sản" v-model="assetTypeName" required placeholder="Tên tài sản" />
+                            <ms-input label="Tên tài sản" v-model="assetTypeName" required
+                                placeholder="Nhập tên tài sản" />
                         </div>
                         <!-- Tên bộ phận sử dụng -->
                         <div class="form-group">
@@ -59,29 +68,35 @@
                             <div class="d-flex flex-direction-column flex1 mr-16 ">
                                 <!-- Nguyên giá -->
                                 <div class="form-group">
-                                    <ms-input label="Nguyên giá" v-model="originalPrice" required="" />
-                                </div>
-                                <!-- Giá trị hao mòn năm -->
-                                <div class="form-group">
-                                    <ms-input label="Giá trị hao mòn năm" v-model="annualDepreciation" required="" />
+                                    <ms-input label="Nguyên giá" v-model="originalPrice" required="" align="right" />
                                 </div>
                                 <!-- Ngày mua -->
                                 <div class="form-group">
-                                    <!-- <ms-date label="Ngày mua" required=""></ms-date> -->
-                                    <label for="purchase-date">Ngày bắt đầu sử dụng<span
+                                    <ms-date label="Ngày bắt đầu sử dụng" required="">
+                                        <template #icon>
+                                            <i class="icon-default icon-calendar"></i>
+                                        </template>
+                                    </ms-date>
+                                    <!-- <label for="purchase-date">Ngày bắt đầu sử dụng<span
                                             class="required">*</span></label>
                                     <input type="date" placeholder="dd/MM/yyyy" style="height: 32px;"
-                                        v-model="formData.datePurchase" />
+                                        v-model="formData.datePurchase" /> -->
+                                </div>
+                                <!-- Giá trị hao mòn năm -->
+                                <div class="form-group">
+                                    <ms-input label="Giá trị hao mòn năm" v-model="annualDepreciation" required=""
+                                        align="right" />
                                 </div>
                             </div>
                             <div class="d-flex flex-direction-column flex1">
                                 <!-- Tỷ lệ hao mòn -->
                                 <div class="form-group">
-                                    <ms-input label="Tỷ lệ hao mòn (%)" v-model="wareRate" required="" />
+                                    <ms-input label="Tỷ lệ hao mòn (%)" v-model="wareRate" required="" align="right" />
                                 </div>
                                 <!-- Năm theo dõi -->
                                 <div class="form-group">
-                                    <ms-input label="Năm theo dõi" v-model="currentYear" :disabled="true" />
+                                    <ms-input label="Năm theo dõi" v-model="currentYear" :disabled="true"
+                                        align="right" />
                                 </div>
                             </div>
                         </div>
@@ -94,12 +109,21 @@
             <ms-button type="secondary" @click="$emit('cancel')" buttonComponentStyle="btn-modal">
                 <p class="btn-text">Hủy</p>
             </ms-button>
-            <ms-button type="primary" @click="saveAsset" buttonComponentStyle="btn-modal">
+            <ms-button type="primary" @click="openConfirm" buttonComponentStyle="btn-modal">
                 <p class="btn-text">Lưu</p>
             </ms-button>
         </template>
 
     </ms-modal>
+    <ms-modal-confirm :is-open="showConfirm"
+        message="Thông tin thay đổi sẽ không được cập nhật nếu bạn không lưu. Bạn có muốn lưu các thay đổi này?">
+        <ms-button type="secondary" @click="handleCancel" buttonComponentStyle="btn-modal border-1">Hủy
+            bỏ</ms-button>
+        <button class="btn btn-no-save" @click="closeConfirm">Không lưu</button>
+        <ms-button type="primary" @click="confirmSave" buttonComponentStyle="btn-modal">
+            <p class="btn-text">Lưu</p>
+        </ms-button>
+    </ms-modal-confirm>
 </template>
 
 <script setup>
@@ -108,11 +132,13 @@ import MsModal from '@/components/ms-modal/MsModal.vue';
 import MsButton from '@/components/ms-button/MsButton.vue';
 import MsInput from '@/components/ms-input/MsInput.vue';
 import MsSelect from '@/components/ms-select/MsSelect.vue';
-// import MsDate from '@/components/ms-date/MsDate.vue';
+import MsDate from '@/components/ms-date/MsDate.vue';
 import AssetTypeApi from '@/apis/components/AssetTypeApi.js';
 import DepartmentApi from '@/apis/components/DepartmentApi.js';
 import AssetApi from '@/apis/components/AssetApi.js';
-
+import { openToast } from "@/utils/showToast.js";
+import MsModalConfirm from '@/components/ms-modal/MsModalConfirm.vue';
+import MsInputNumber from '@/components/ms-input/MsInputNumber.vue';
 const lsAssetType = ref([]);
 const lsDepartment = ref([]);
 const generateCode = ref('');
@@ -125,6 +151,7 @@ const wareRate = ref(0);
 const currentYear = new Date().getFullYear();
 const originalPrice = ref(0);
 const annualDepreciation = ref(0);
+const quantity = ref(0);
 const localData = ref({
     assetId: null,
     assetCode: '',
@@ -136,6 +163,7 @@ const localData = ref({
     assetTypeId: null,
     departmentId: null,
 });
+const showConfirm = ref(false);
 //#region Props
 const props = defineProps({
     isOpen: {
@@ -239,15 +267,15 @@ const saveAsset = async () => {
             response = await AssetApi.update(localData.value.assetId, payload);
         }
         if (response && response.data && response.data.success) {
-            alert("Tạo tài sản thành công!");
+            openToast("success", "Thành công", "Lưu dữ liệu thành công");
             emit('save', payload);
             emit('close');
         } else {
-            alert("Tạo tài sản thất bại!");
+            openToast("error", "Thất bại", "Lưu dữ liệu thất bại");
         }
     }
     catch (error) {
-        console.log("Lỗi tạo tài sản", error);
+        openToast("error", "Thất bại", error.response.data.message || "Lưu dữ liệu thất bại");
     }
 }
 
@@ -266,7 +294,19 @@ const saveAsset = async () => {
 //         formData.value.originalPrice = isNaN(numericValue) ? 0 : numericValue;
 //     }
 // });
-
+function openConfirm() {
+    showConfirm.value = true
+}
+function closeConfirm() {
+    showConfirm.value = false
+}
+function handleCancel() {
+    closeConfirm()
+}
+function confirmSave() {
+    closeConfirm()
+    saveAsset()
+}
 //#region Computed
 const modalTitle = computed(() => {
     return props.mode === 'add' ? 'Thêm tài sản' : 'Sửa tài sản';
@@ -331,6 +371,7 @@ watch(() => props.data, (newVal) => {
     margin-bottom: 8px;
     display: flex;
     flex-direction: column;
+    height: 70px;
 }
 
 .inline-group {
@@ -372,5 +413,19 @@ select:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     outline: none;
+}
+
+.btn {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 2.5px;
+    cursor: pointer;
+}
+
+.btn-no-save {
+    background: #e8f6ff;
+    color: #2a89d5;
+    border: 1px solid #1aa4c8;
 }
 </style>

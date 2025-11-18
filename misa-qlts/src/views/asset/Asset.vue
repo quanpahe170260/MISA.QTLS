@@ -72,7 +72,7 @@ const search = ref("");
 const department = ref("");
 const assetType = ref("");
 const page = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(20);
 const total = ref(200);
 const isFormOpen = ref(false);
 const selectedIds = ref([]);
@@ -146,16 +146,16 @@ onMounted(async () => {
 });
 
 const columns = ref([
-    { key: "stt", label: "STT", align: "left" },
+    { key: "stt", label: "STT", align: "center", width: '50' },
     { key: "assetId", label: "", align: "left", hidden: true },
-    { key: "assetCode", label: "Mã tài sản" },
-    { key: "assetName", label: "Tên tài sản" },
-    { key: "assetTypeName", label: "Loại tài sản" },
-    { key: "departmentName", label: "Bộ phận sử dụng" },
-    { key: "quantity", label: "Số lượng", align: "right" },
-    { key: "originalPrice", label: "Nguyên giá", align: "right" },
-    { key: "depreciationValueYear", label: "HM/KM lũy kế", align: "right" },
-    { key: "remaining", label: "Giá trị còn lại", align: "right" },
+    { key: "assetCode", label: "Mã tài sản", width: '120' },
+    { key: "assetName", label: "Tên tài sản", width: '170' },
+    { key: "assetTypeName", label: "Loại tài sản", width: '170' },
+    { key: "departmentName", label: "Bộ phận sử dụng", width: '150' },
+    { key: "quantity", label: "Số lượng", align: "right", width: '80' },
+    { key: "originalPrice", label: "Nguyên giá", align: "right", width: '130' },
+    { key: "depreciationValueYear", label: "HM/KM lũy kế", align: "right", width: '130' },
+    { key: "remaining", label: "Giá trị còn lại", align: "right", width: '130' },
 ]);
 async function loadData() {
     lsAssets.value = await getAllAssets();

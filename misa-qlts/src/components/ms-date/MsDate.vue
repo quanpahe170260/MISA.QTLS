@@ -1,33 +1,72 @@
 <template>
-    <div class="date-input-wrapper">
-        <label :for="id" class="date-label">
+    <div class="input-date-wrapper">
+        <label v-if="label" class="input-label">
             {{ label }}
             <span v-if="required" class="required">*</span>
         </label>
 
-        <DatePicker v-model="model" inputMode="icon" showIcon iconDisplay="input" dateFormat="dd/mm/yy"
-            class="date-picker" />
+        <div class="input-date-container">
+            <Calendar ref="calendarRef" v-model="internalValue" appendTo="self" :placeholder="placeholder"
+                :showIcon="false" :dateFormat="dateFormat" class="w-full" @blur="$emit('blur')"
+                @focus="$emit('focus')" />
+
+            <!-- Icon tùy chỉnh -->
+            <span class="icon-container" @click="openCalendar">
+                <slot name="icon">
+                    <!-- Nếu không có slot thì dùng prop icon -->
+                    <component v-if="icon" :is="icon" class="custom-icon" />
+                    <i v-else class="pi pi-calendar"></i>
+                </slot>
+            </span>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from "vue";
-import DatePicker from "primevue/datepicker";
-
+import { ref, watch } from "vue";
+import Calendar from "primevue/calendar";
+const calendarRef = ref();
 const props = defineProps({
-    modelValue: null,
+    modelValue: {
+        type: [String, Date, null],
+        default: null
+    },
     label: String,
-    id: String,
-    required: Boolean
+    placeholder: String,
+    required: Boolean,
+    icon: [String, Object],
+    dateFormat: {
+        type: String,
+        default: "dd/mm/yy"
+    }
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "blur", "focus"]);
 
-const model = computed({
-    get: () => props.modelValue,
-    set: (val) => emit("update:modelValue", val)
+const internalValue = ref(
+    props.modelValue ? new Date(props.modelValue) : new Date()
+);
+
+
+watch(
+    () => props.modelValue,
+    (val) => {
+        internalValue.value = val;
+    }
+);
+
+watch(internalValue, (val) => {
+    emit("update:modelValue", val);
 });
+
+function openCalendar() {
+    if (calendarRef.value?.$el) {
+        const input = calendarRef.value.$el.querySelector("input");
+        if (input) input.click();
+    }
+}
 </script>
+
 <style scoped>
-@import '../../assets/components/ms-date/MsDate.css';
+@import '@/assets/components/ms-date/MsDate.css';
 </style>

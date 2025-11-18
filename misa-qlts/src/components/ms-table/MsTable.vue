@@ -1,7 +1,7 @@
 <template>
-    <div class="table-wrapper" @keydown="onKey">
-        <table class="m-table">
-            <thead>
+    <div class="table-wrapper d-flex flex-direction-column" @keydown="onKey">
+        <table class="m-table fixed-table">
+            <thead class="d-flex">
                 <tr>
                     <th class="col-check">
                         <input type="checkbox" class="square-checkbox" :checked="isAllSelected"
@@ -16,7 +16,7 @@
                         <div class="resize-handle" @mousedown="startResize($event, i)">
                         </div>
                     </th>
-                    <th class="text-align-right fuction-head">
+                    <th class="text-align-right fuction-head pr-20">
                         Chức năng
                     </th>
                 </tr>
@@ -31,7 +31,8 @@
                             @change="onCheckboxClick(row[props.rowKey], $event)" />
                     </td>
 
-                    <td v-for="col in visibleCols" :key="col.key" :style="{ textAlign: col.align || 'left' }">
+                    <td v-for="col in visibleCols" :key="col.key"
+                        :style="{ width: col.width + 'px', textAlign: col.align || 'left' }">
                         <span v-if="col.key === 'stt'">
                             {{ (page - 1) * pageSize + rindex + 1 }}
                         </span>
@@ -61,11 +62,12 @@
                 <div class="d-flex flex-direction-row justify-content-space-between align-items-center page-control">
                     <div @click="go(-1)" :disabled="page <= 1"
                         class="icon-mask icon-chevron-left-black page-nav-icon chevron-left">&lt;</div>
-                    <div class="page-number-link">1</div>
-                    <div class="page-number-link active-page">2</div>
-                    <div class="page-number-link">3</div>
-                    <div class="page-dots">...</div>
-                    <div class="page-number-link">10</div>
+                    <!-- Render pages động -->
+                    <div v-for="p in visiblePages" :key="p" @click="changePage(p)" class="page-number-link"
+                        :class="{ 'active-page': p === page, 'page-dots': p === '...' }">
+                        {{ p }}
+                    </div>
+
                     <div @click="go(1)" :disabled="page >= maxPage"
                         class="icon-mask icon-chevron-right-black page-nav-icon chevron-right">&gt;</div>
                 </div>
@@ -120,6 +122,33 @@ const openEditForm = (row) => {
     selectedRow.value = { ...row };
     isFormOpen.value = true;
 };
+const visiblePages = computed(() => {
+    const pages = [];
+    const total = maxPage.value;
+    const current = props.page;
+
+    // Ít trang → show hết
+    if (total <= 7) {
+        for (let i = 1; i <= total; i++) pages.push(i);
+        return pages;
+    }
+
+    // Trang đầu
+    if (current <= 3) {
+        pages.push(1, 2, 3, 4, "...", total);
+        return pages;
+    }
+
+    // Trang cuối
+    if (current >= total - 2) {
+        pages.push(1, "...", total - 3, total - 2, total - 1, total);
+        return pages;
+    }
+
+    // Trang ở giữa
+    pages.push(1, "...", current - 1, current, current + 1, "...", total);
+    return pages;
+});
 
 /// resize state
 let resizing = false;

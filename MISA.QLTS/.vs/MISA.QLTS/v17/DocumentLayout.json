@@ -96,7 +96,7 @@
               "RelativeDocumentMoniker": "MISA.QLTS.Core\\Entities\\Asset.cs",
               "ToolTip": "C:\\Users\\admin\\Desktop\\MISA.QLTS\\MISA.QLTS\\MISA.QLTS.Core\\Entities\\Asset.cs",
               "RelativeToolTip": "MISA.QLTS.Core\\Entities\\Asset.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAAAwAAAARAAAAAAAAAA==",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAAwAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-16T15:11:44.036Z",
               "EditorCaption": ""
@@ -123,8 +123,7 @@
               "RelativeToolTip": "MISA.QLTS.Core\\Services\\BaseService.cs",
               "ViewState": "AgIAAEQAAAAAAAAAAADwv1YAAABKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-16T15:08:41.273Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-16T15:08:41.273Z"
             },
             {
               "$type": "Document",

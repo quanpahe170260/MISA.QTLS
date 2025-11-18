@@ -5,8 +5,9 @@
             <span v-if="required" class="required">*</span>
         </label>
 
-        <input class="input-control" :class="{ disabled: disabled }" :placeholder="placeholder" :disabled="disabled"
-            :value="modelValue" @input="onInput" @blur="onBlur" @focus="$emit('focus', $event)" :type="type" />
+        <input class="input-control" :class="[{ disabled: disabled }]" :placeholder="placeholder" :disabled="disabled"
+            :value="modelValue" @input="onInput" @blur="onBlur" @focus="$emit('focus', $event)" :type="type"
+            :style="{ textAlign: align }" />
         <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
     </div>
 </template>
@@ -39,6 +40,10 @@ const props = defineProps({
     type: {
         type: String,
         default: 'text'
+    },
+    align: {
+        type: String,
+        default: 'left'
     }
 })
 //#endregion

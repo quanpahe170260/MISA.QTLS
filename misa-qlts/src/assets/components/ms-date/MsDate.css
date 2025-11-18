@@ -1,25 +1,45 @@
-.date-input-wrapper {
+.input-date-wrapper {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  gap: 4px;
 }
 
-.date-label {
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 6px;
+.input-date-container {
+  position: relative;
+  height: 36px;
+  border: 1px solid #ccc;
+  border-radius: 2.5px;
 }
 
-.required {
-  color: red;
-  margin-left: 3px;
+.icon-container {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
-.date-picker,
-.date-input-wrapper .p-inputtext {
-  width: 100%;
+.custom-icon {
+  width: 18px;
+  height: 18px;
+}
+.input-date-container :deep(.p-inputtext) {
+  padding-left: 10px !important;
+  height: 34px !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-.date-input-wrapper .p-inputtext {
-  height: 38px;
+:deep(.p-datepicker-panel) {
+  background-color: #fff !important;
+  border: 1px solid #d0d0d0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  padding: 10px !important;
+  border-radius: 4px !important;
+}
+:deep(.input-date-container .p-datepicker-panel) {
+  width: 125% !important;
+  min-width: 0 !important;
 }

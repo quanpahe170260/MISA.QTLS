@@ -10,7 +10,7 @@ namespace MISA.QLTS.Core.Entities
     [MISATableName("asset")]
     public class Asset
     {
-        [MISAKey]
+        [MISAKey]   
         [MISAColumnName("asset_id")]
         public Guid AssetId { get; set; }
         [MISAColumnName("asset_code")]

@@ -57,6 +57,12 @@
   background-position: -72px -338px;
 }
 
+.icon-chevrons-up {
+  width: 8px;
+  height: 5px;
+  background-position: -28px -338px;
+}
+
 .icon-chevron-left {
   width: 6px;
   height: 8px;
@@ -241,4 +247,27 @@
   width: 18px;
   height: 18px;
   background-position: -375px -287px;
+}
+
+/* icon warning */
+.icon-warning {
+  width: 24px;
+  height: 20px;
+  background-position: -416px -66px;
+}
+
+/* noti */
+.icon-success {
+  mask-position: -288px -376px;
+  mask-repeat: no-repeat;
+  background-color: #4cc56e;
+  width: 16px;
+  height: 16px;
+}
+
+/* icon calendar */
+.icon-calendar {
+  background-position: -287px -67px;
+  width: 18px;
+  height: 18px;
 }
