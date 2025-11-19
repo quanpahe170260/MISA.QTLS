@@ -48,4 +48,10 @@ export default class BaseApi {
   delete(id) {
     return api.delete(`${this.controler}/${id}`)
   }
+
+  deleteMultiple(lsId) {
+    return api.delete(`${this.controler}`, {
+      data: lsId,
+    })
+  }
 }

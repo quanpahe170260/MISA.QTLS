@@ -53,8 +53,7 @@
                     <div class="d-flex flex2 flex-direction-column">
                         <!-- Tên tài sản -->
                         <div class="form-group">
-                            <ms-input label="Tên tài sản" v-model="assetTypeName" required
-                                placeholder="Nhập tên tài sản" />
+                            <ms-input label="Tên tài sản" v-model="assetName" required placeholder="Nhập tên tài sản" />
                         </div>
                         <!-- Tên bộ phận sử dụng -->
                         <div class="form-group">
@@ -146,6 +145,7 @@ const selectedDepartmentId = ref(null);
 const selectedAssetTypeId = ref(null);
 const departmentName = ref("");
 const assetTypeName = ref("");
+const assetName = ref("");
 const yearOfUse = ref(0);
 const wareRate = ref(0);
 const currentYear = new Date().getFullYear();
@@ -260,7 +260,7 @@ const saveAsset = async () => {
             departmentId: selectedDepartmentId.value,
         };
         let response;
-        if (props.mode === 'add') {
+        if (props.mode === 'add' || props.mode === 'copy') {
             response = await AssetApi.create(payload);
         } else if (props.mode === 'edit') {
             payload.assetId = localData.value.assetId;
@@ -278,38 +278,42 @@ const saveAsset = async () => {
         openToast("error", "Thất bại", error.response.data.message || "Lưu dữ liệu thất bại");
     }
 }
-
-// Logic format tiền tệ
-// const formatCurrency = (value) => {
-//     if (value === null || value === undefined || value === '') return '';
-//     return new Intl.NumberFormat('vi-VN').format(value);
-// };
-
-// const formattedOriginalPrice = computed({
-//     get() {
-//         return formatCurrency(formData.value.originalPrice);
-//     },
-//     set(newValue) {
-//         const numericValue = parseInt(newValue.replace(/\./g, ''), 10);
-//         formData.value.originalPrice = isNaN(numericValue) ? 0 : numericValue;
-//     }
-// });
+console.log('localData', localData.value);
+/**
+ * Hàm mở form confirm
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function openConfirm() {
     showConfirm.value = true
 }
+
+/**
+ * Hàm đóng form confirm
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function closeConfirm() {
     showConfirm.value = false
 }
+
+/**
+ * Hàm hủy hành động
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function handleCancel() {
     closeConfirm()
 }
+
+/**
+ * Hàm xác nhận lưu
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function confirmSave() {
     closeConfirm()
     saveAsset()
 }
 //#region Computed
 const modalTitle = computed(() => {
-    return props.mode === 'add' ? 'Thêm tài sản' : 'Sửa tài sản';
+    return props.mode === 'edit' ? 'Sửa tài sản' : 'Thêm tài sản';
 });
 //#endregion
 
@@ -337,7 +341,7 @@ watch(() => props.data, (newVal) => {
     if (props.mode === 'edit' && newVal) {
         localData.value = { ...newVal };
         generateCode.value = newVal.assetCode;
-        assetTypeName.value = newVal.assetName;
+        assetName.value = newVal.assetName;
         originalPrice.value = newVal.originalPrice;
         selectedAssetTypeId.value = newVal.assetTypeId;
         selectedDepartmentId.value = newVal.departmentId;
@@ -345,7 +349,15 @@ watch(() => props.data, (newVal) => {
         originalPrice.value = newVal.originalPrice;
         wareRate.value = newVal.wearRate;
     }
-    console.log('localData', localData);
+    else if (props.mode === 'copy' && newVal) {
+        assetName.value = newVal.assetName;
+        originalPrice.value = newVal.originalPrice;
+        selectedAssetTypeId.value = newVal.assetTypeId;
+        selectedDepartmentId.value = newVal.departmentId;
+        formData.value.datePurchase = newVal.datePurchase;
+        originalPrice.value = newVal.originalPrice;
+        wareRate.value = newVal.wearRate;
+    }
 }, { immediate: true });
 
 //#endregion

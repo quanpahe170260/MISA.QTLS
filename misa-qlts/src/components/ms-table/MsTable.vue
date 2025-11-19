@@ -42,14 +42,14 @@
                     </td>
                     <td class="fuction d-flex align-items-center justify-content-space-evently">
                         <div class="icon-default icon-edit pointer" @click="openEditForm(row)"></div>
-                        <div class="icon-default icon-copy pointer"></div>
+                        <div class="icon-default icon-copy pointer" @click="openAddForm(row)"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
 
         <!-- pagination -->
-        <div class="pagination">
+        <!-- <div class="pagination">
             <div class="d-flex align-items-center left-section">
                 <span class="page-total">Tổng số: <b>200</b> bản ghi</span>
 
@@ -62,7 +62,6 @@
                 <div class="d-flex flex-direction-row justify-content-space-between align-items-center page-control">
                     <div @click="go(-1)" :disabled="page <= 1"
                         class="icon-mask icon-chevron-left-black page-nav-icon chevron-left">&lt;</div>
-                    <!-- Render pages động -->
                     <div v-for="p in visiblePages" :key="p" @click="changePage(p)" class="page-number-link"
                         :class="{ 'active-page': p === page, 'page-dots': p === '...' }">
                         {{ p }}
@@ -78,23 +77,61 @@
                     {{ formatNumber(total) }}
                 </span>
             </div>
-        </div>
+        </div> -->
+        <tfoot>
+            <tr class="footer-row">
+
+                <!-- Cột 1: Tổng số bản ghi -->
+                <td class="footer-record-count">
+                    Tổng số: <b>{{ total }}</b> bản ghi
+                </td>
+
+                <!-- Cột 2: PageSize -->
+                <td class="footer-page-size">
+                    <select v-model="localPageSize" class="page-select">
+                        <option :value="20">20</option>
+                        <option :value="50">50</option>
+                        <option :value="100">100</option>
+                    </select>
+                </td>
+
+                <!-- Cột 3: Phân trang -->
+                <td class="footer-pagination">
+                    <div class="page-control">
+                        <div @click="go(-1)" :disabled="page <= 1" class="page-nav-icon">&lt;</div>
+
+                        <div v-for="p in visiblePages" :key="p" @click="changePage(p)" class="page-number-link"
+                            :class="{ 'active-page': p === page, 'page-dots': p === '...' }">
+                            {{ p }}
+                        </div>
+
+                        <div @click="go(1)" :disabled="page >= maxPage" class="page-nav-icon">&gt;</div>
+                    </div>
+                </td>
+
+                <!-- Các cột không có totals (cột 4 → cột 6) -->
+                <td v-for="n in 3" :key="'empty' + n" :style="{ width: (348 / 3) + 'px' }"></td>
+
+                <td v-for="(value, index) in totals" :key="'total' + index" class="footer-total-cell"
+                    :style="{ textAlign: 'right', width: totalWidths[index] }">
+                    {{ formatNumber(value) }}
+                </td>
+                <td :style="{ width: '94.4px' }"></td>
+            </tr>
+        </tfoot>
+
     </div>
-    <asset-form :is-open="isFormOpen" @close="isFormOpen = false" @cancel="isFormOpen = false" @save="handleSave"
-        mode="edit" :data="selectedRow" />
 </template>
 
 <script setup>
 import { ref, watch, computed, onMounted, onUnmounted, nextTick } from "vue";
-import AssetForm from '@/views/asset/AssetForm.vue';
-const isFormOpen = ref(false);
 
-const columnHeaders = ref({});
+const columnHeaders = ref([]);
 const rightDataSection = ref(null);
 const columnOffsets = ref([0, 0, 0, 0]);
 const selected = ref([]);
 const focusIndex = ref(0);
-const selectedRow = ref(null);
+const totalWidths = ["80px", "130px", "130px", "130px"];
 //#region Props
 const props = defineProps({
     columns: Array,
@@ -112,16 +149,29 @@ const props = defineProps({
     },
 });
 //#endregion
+const localCols = ref(JSON.parse(JSON.stringify(props.columns)));
 
 //#region Emits
 const emit = defineEmits(["update:page", "selection-change"]);
 //#endregion
 
-const localCols = ref(JSON.parse(JSON.stringify(props.columns)));
+/**
+ * Hàm mở form edit
+ * @param row 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const openEditForm = (row) => {
-    selectedRow.value = { ...row };
-    isFormOpen.value = true;
+    emit("edit-row", row);
 };
+
+const openAddForm = (row) => {
+    emit("open-add-form", row);
+};
+
+/**
+ * Hàm tính số trang
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const visiblePages = computed(() => {
     const pages = [];
     const total = maxPage.value;
@@ -184,6 +234,11 @@ const isAllSelected = computed(() => {
     return selected.value.length === props.rows.length && props.rows.length > 0;
 });
 
+/**
+ * Hàm chọn tất cả
+ * @param e 
+ * CreatedBy: QuanPA - 17/11/2025
+ */
 const toggleSelectAll = (e) => {
     if (e.target.checked) {
         selected.value = props.rows.map(r => r[props.rowKey]);
@@ -193,21 +248,29 @@ const toggleSelectAll = (e) => {
     emit("selection-change", selected.value);
 };
 
+/**
+ * Hàm checked row
+ * @param id 
+ * @param e 
+ * CreatedBy: QuanPA - 17/11/2025
+ */
 const onCheckboxClick = (id, e) => {
     console.log("Row checkbox clicked:", id, "checked =", e.target.checked);
     if (e.target.checked) {
-        // Thêm vào selected nếu chưa có
         if (!selected.value.includes(id)) {
             selected.value.push(id);
         }
     } else {
-        // Bỏ khỏi selected
         selected.value = selected.value.filter(item => item !== id);
     }
     emit("selection-change", selected.value);
 };
 
-/// --- Keyboard navigation ---
+/**
+ * Hàm di chuyển bằng bàn phím
+ * @param e 
+ * CreatedBy: QuanPA - 17/11/2025
+ */
 const onKey = (e) => {
     if (e.key === "ArrowDown") {
         focusIndex.value = Math.min(focusIndex.value + 1, props.rows.length - 1);
@@ -338,9 +401,11 @@ const formatNumber = (num) => {
 };
 
 // Watch for column width changes
+//#region Watch
 watch(() => localCols.value, () => {
     calculateColumnOffsets();
 }, { deep: true });
+//#endregion
 
 // Recalculate on window resize
 const handleResize = () => {

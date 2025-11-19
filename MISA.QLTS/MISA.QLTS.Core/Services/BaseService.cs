@@ -18,37 +18,79 @@ namespace MISA.QLTS.Core.Services
         {
             _baseRepository = baseRepository;
         }
+
+        /// <summary>
+        /// Xóa bản ghi
+        /// </summary>
+        /// <param name="entityId">Id bản ghi cần xóa</param>
+        /// <returns>Số bản ghi bị xóa trong database (1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> DeleteAsync(Guid entityId)
         {
             return await _baseRepository.DeleteAsync(entityId);
         }
 
+        /// <summary>
+        /// Xóa nhiều bản ghi
+        /// </summary>
+        /// <param name="entitiesId">Danh sách Id bản ghi cần xóa</param>
+        /// <returns>Số bản ghi bị xóa trong database (>= 1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> DeleteMultipleAsync(List<Guid> entitiesId)
         {
             return await _baseRepository.DeleteMultipleAsync(entitiesId);
         }
 
+        /// <summary>
+        /// Hàm generate code
+        /// </summary>
+        /// <returns>Code mới</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<string> GenerateCode()
         {
             return await _baseRepository.GenerateCode();
         }
 
+        /// <summary>
+        /// Lấy tất cả bản ghi
+        /// </summary>
+        /// <returns>Danh sách tất cả các bản ghi</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _baseRepository.GetAllAsync();
         }
 
+        /// <summary>
+        /// Lấy bản ghi theo id
+        /// </summary>
+        /// <param name="entityId">Id của bản ghi</param>
+        /// <returns>Bản ghi theo id</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<T?> GetByIdAsync(Guid entityId)
         {
             return await _baseRepository.GetByIdAsync(entityId);
         }
 
+        /// <summary>
+        /// Thêm bản ghi
+        /// </summary>
+        /// <param name="entity">Dữ liệu bản ghi thêm</param>
+        /// <returns>Số bản ghi được thêm vào database (1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> InsertAsync(T entity)
         {
             await ValidateData(entity);
             return await _baseRepository.InsertAsync(entity);
         }
 
+        /// <summary>
+        /// Sửa bản ghi
+        /// </summary>
+        /// <param name="entity">Dữ liệu bản ghi sửa </param>
+        /// <param name="entityId">Id bản ghi cần sửa </param>
+        /// <returns>Số bản ghi được sửa trong database ( 1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> UpdateAsync(T entity, Guid entityId)
         {   
             var entityExist = await _baseRepository.GetByIdAsync(entityId);

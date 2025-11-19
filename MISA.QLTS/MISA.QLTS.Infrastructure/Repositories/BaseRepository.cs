@@ -21,6 +21,12 @@ namespace MISA.QLTS.Infrastructure.Repositories
             _context = context;
         }
 
+        /// <summary>
+        /// Xóa bản ghi
+        /// </summary>
+        /// <param name="entityId">Id bản ghi cần xóa</param>
+        /// <returns>Số bản ghi bị xóa trong database (1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> DeleteAsync(Guid entityId)
         {
             var tableName = MISAAttributeHelper<T>.GetTableName();
@@ -31,6 +37,11 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return row;
         }
 
+        /// <summary>
+        /// Lấy tất cả bản ghi
+        /// </summary>
+        /// <returns>Danh sách tất cả các bản ghi</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             var tableName = MISAAttributeHelper<T>.GetTableName();
@@ -40,6 +51,12 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return data;
         }
 
+        /// <summary>
+        /// Lấy bản ghi theo id
+        /// </summary>
+        /// <param name="entityId">Id của bản ghi</param>
+        /// <returns>Bản ghi theo id</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<T?> GetByIdAsync(Guid entityId)
         {
             var tableName = MISAAttributeHelper<T>.GetTableName();
@@ -50,6 +67,12 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return data;
         }
 
+        /// <summary>
+        /// Thêm bản ghi
+        /// </summary>
+        /// <param name="entity">Dữ liệu bản ghi thêm</param>
+        /// <returns>Số bản ghi được thêm vào database (1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> InsertAsync(T entity)
         {   
             var properties = typeof(T).GetProperties();
@@ -98,6 +121,13 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return row;
         }
 
+        /// <summary>
+        /// Sửa bản ghi
+        /// </summary>
+        /// <param name="entity">Dữ liệu bản ghi sửa </param>
+        /// <param name="entityId">Id bản ghi cần sửa </param>
+        /// <returns>Số bản ghi được sửa trong database ( 1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> UpdateAsync(T entity, Guid entityId)
         {
             var tableName = MISAAttributeHelper<T>.GetTableName() ;
@@ -145,6 +175,11 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return row;
         }
 
+        /// <summary>
+        /// Hàm generate code
+        /// </summary>
+        /// <returns>Code mới</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<string> GenerateCode()
         {   
             var tableName = MISAAttributeHelper<T>.GetTableName();
@@ -160,6 +195,13 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return code;
         }
 
+        /// <summary>
+        /// Hàm kiểm tra xem code đã tồn tại hay chưa
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="entityId"></param>
+        /// <returns>true/ false</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         private async Task<bool> CheckCodeExist(string code, Guid entityId)
         {
             var tableName = MISAAttributeHelper<T>.GetTableName();
@@ -200,6 +242,12 @@ namespace MISA.QLTS.Infrastructure.Repositories
             return lastCode.Substring(0, lastCode.Length - numberPart.Length) + newNumberPart;
         }
 
+        /// <summary>
+        /// Xóa nhiều bản ghi
+        /// </summary>
+        /// <param name="entitiesId">Danh sách Id bản ghi cần xóa</param>
+        /// <returns>Số bản ghi bị xóa trong database (>= 1 - thành công, 0 - thất bại)</returns>
+        /// CreatedBy: QuanPA - 14/11/2025
         public async Task<int> DeleteMultipleAsync(List<Guid> entitiesId)
         {
             var tableName = MISAAttributeHelper<T>.GetTableName();

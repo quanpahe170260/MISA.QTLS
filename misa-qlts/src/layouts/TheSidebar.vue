@@ -54,14 +54,27 @@
     </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import SidebarItem from '@/components/ms-sidebar-item/MsSidebarItem.vue'
 
 const current = ref('asset')
-const isCollapsed = ref(false);
+const isCollapsed = ref(false)
+
+const handleResize = () => {
+    isCollapsed.value = window.innerWidth < 1500
+}
+
+onMounted(() => {
+    window.addEventListener('resize', handleResize)
+    handleResize()
+})
+
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize)
+})
 
 function toggleSidebar() {
-    isCollapsed.value = !isCollapsed.value;
+    isCollapsed.value = !isCollapsed.value
 }
 </script>
 
@@ -72,7 +85,6 @@ function toggleSidebar() {
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, .16);
     min-height: 100vh;
     color: white;
-    /* transition: width 0.3s; */
 }
 
 .sidebar.collapsed :deep(p) {

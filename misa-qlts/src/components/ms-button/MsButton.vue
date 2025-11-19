@@ -16,7 +16,7 @@
 <script setup>
 import { defineProps } from 'vue';
 //#region 
-const props = defineProps({
+defineProps({
     icon: {
         type: String,
         default: null,
