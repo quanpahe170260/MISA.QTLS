@@ -1,5 +1,6 @@
 ﻿using MISA.QLTS.Core.DTOs.Response;
 using MISA.QLTS.Core.Entities;
+using MISA.QLTS.Core.Exceptions;
 using MISA.QLTS.Core.Interfaces.Repositories;
 using MISA.QLTS.Core.Interfaces.Services;
 using System;
@@ -13,9 +14,11 @@ namespace MISA.QLTS.Core.Services
     public class AssetService : BaseService<Asset>, IAssetService
     {   
         private readonly IAssetRepository _assetRepository;
-        public AssetService(IAssetRepository assetRepository) : base(assetRepository)
+        private readonly IAssetTypeRepository _assetTypeRepository;
+        public AssetService(IAssetRepository assetRepository, IAssetTypeRepository assetTypeRepository) : base(assetRepository)
         {
             _assetRepository = assetRepository;
+            _assetTypeRepository = assetTypeRepository;
         }
 
         /// <summary>
@@ -31,6 +34,19 @@ namespace MISA.QLTS.Core.Services
         public async Task<PagedResult<AssetResponseDTO>> GetPagedAsync(int page, int pageSize, string? departmentID, string assetTypeID, string? search)
         {
             return await _assetRepository.GetPagedAsync(page, pageSize, departmentID, assetTypeID, search);
+        }
+
+        /// <summary>
+        /// Override hàm InsertAsync để thêm validate business logic
+        /// </summary>
+        public async Task<int> InsertAsync(Asset asset)
+        {
+            await ValidateData(asset);
+            if (asset.DepreciationValueYear > asset.OriginalPrice)
+            {
+                throw new ValidateException("Hao mòn năm phải nhỏ hơn hoặc bằng nguyên giá");
+            }
+            return await _assetRepository.InsertAsync(asset);
         }
     }
 }

@@ -50,11 +50,20 @@
         <div class="flex1">
             <div style="padding: 20px">
                 <ms-table :columns="columns" :rows="lsAssets" :page="page" :page-size="pageSize" :total="total"
-                    @update:page="page = $event" @update:pageSize="pageSize = $event"
-                    @selection-change="selectedIds = $event" rowKey="assetId" @edit-row="openEditForm"
-                    @open-add-form="openAddForm" />
+                    :selected-keys="selectedIds" @update:page="page = $event" @update:pageSize="pageSize = $event"
+                    @selection-change="handleSelectionChange" rowKey="assetId" @edit-row="openEditForm"
+                    @open-add-form="openAddForm" @row-contextmenu="handleRowContextMenu" />
             </div>
         </div>
+    </div>
+    <div v-if="isContextMenuVisible" class="context-menu" :style="{
+        top: contextMenuPosition.y + 'px',
+        left: contextMenuPosition.x + 'px'
+    }" @click.stop>
+        <div class="context-menu-item" @click="handleContextMenuAction('add')">Thêm</div>
+        <div class="context-menu-item" @click="handleContextMenuAction('edit')">Sửa</div>
+        <div class="context-menu-item" @click="handleContextMenuAction('delete')">Xóa</div>
+        <div class="context-menu-item" @click="handleContextMenuAction('duplicate')">Nhân bản</div>
     </div>
     <asset-form :is-open="isFormOpen" :mode="formMode" :data="selectedRow" @close="isFormOpen = false"
         @cancel="isFormOpen = false" @save="handleSave" />
@@ -74,9 +83,10 @@ import AssetApi from '@/apis/components/AssetApi.js';
 import AssetForm from '@/views/asset/AssetForm.vue';
 import DepartmentApi from '@/apis/components/DepartmentApi.js';
 import AssetTypeApi from '@/apis/components/AssetTypeApi';
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import MsModalConfirm from '@/components/ms-modal/MsModalConfirm.vue';
 import { openToast } from "@/utils/showToast.js";
+import { formatNumber } from '@/utils/formatNumber';
 const lsAssets = ref([]);
 const search = ref("");
 const department = ref("");
@@ -91,6 +101,9 @@ const lsDepartment = ref([]);
 const selectedRow = ref(null);
 const formMode = ref("add");
 const showConfirm = ref(false);
+const isContextMenuVisible = ref(false);
+const contextMenuRow = ref(null);
+const contextMenuPosition = ref({ x: 0, y: 0 });
 /**
  * Hàm lấy tất cả tài sản
  * return Danh sách tài sản
@@ -106,7 +119,14 @@ async function getAllAssets() {
             pageSize.value
         );
         total.value = response.data.data.totalCount;
-        return response.data.data.data;
+        const items = response.data.data.data.map(item => ({
+            ...item,
+            quantity: formatNumber(item.quantity),
+            originalPrice: formatNumber(item.originalPrice),
+            depreciationValueYear: formatNumber(item.depreciationValueYear),
+            remaining: item.originalPrice - item.depreciationValueYear
+        }));
+        return items;
     } catch (error) {
         console.log("Lỗi lấy danh sách tài sản", error);
     }
@@ -162,6 +182,20 @@ onMounted(async () => {
     lsDepartment.value = departments;
 });
 
+onMounted(() => {
+    document.addEventListener("click", hideContextMenu);
+    document.addEventListener("scroll", hideContextMenu, true);
+    window.addEventListener("resize", hideContextMenu);
+    window.addEventListener("keydown", handleContextMenuKeydown);
+});
+
+onUnmounted(() => {
+    document.removeEventListener("click", hideContextMenu);
+    document.removeEventListener("scroll", hideContextMenu, true);
+    window.removeEventListener("resize", hideContextMenu);
+    window.removeEventListener("keydown", handleContextMenuKeydown);
+});
+
 
 /**
  * Mở modal xác nhận xóa
@@ -206,6 +240,15 @@ async function confirmSave() {
         openToast("error", "Thất bại", error?.response?.data?.message || "Có lỗi xảy ra");
     }
 }
+
+/**
+ * Hàm cập nhật danh sách tài sản được chọn
+ * @param {Array} ids
+ * CreatedBy: QuanPA - 20/11/2025
+ */
+function handleSelectionChange(ids) {
+    selectedIds.value = ids;
+}
 const columns = ref([
     { key: "stt", label: "STT", align: "center", width: '50' },
     { key: "assetId", label: "", align: "left", hidden: true },
@@ -247,6 +290,68 @@ function openEditForm(row) {
     isFormOpen.value = true;
 }
 
+function handleContextMenuKeydown(event) {
+    if (event.key === "Escape") {
+        hideContextMenu();
+    }
+}
+
+function hideContextMenu() {
+    if (!isContextMenuVisible.value) return;
+    isContextMenuVisible.value = false;
+    contextMenuRow.value = null;
+}
+
+function setContextMenuPosition(x, y) {
+    const MENU_WIDTH = 180;
+    const MENU_HEIGHT = 160;
+    const PADDING = 8;
+    const maxX = window.innerWidth - MENU_WIDTH - PADDING;
+    const maxY = window.innerHeight - MENU_HEIGHT - PADDING;
+    contextMenuPosition.value = {
+        x: Math.max(0, Math.min(x, maxX)),
+        y: Math.max(0, Math.min(y, maxY)),
+    };
+}
+
+function handleRowContextMenu({ row, clientX, clientY }) {
+    if (!row) {
+        return;
+    }
+    selectedRow.value = row;
+    selectedIds.value = [row.assetId];
+    contextMenuRow.value = row;
+    setContextMenuPosition(clientX, clientY);
+    isContextMenuVisible.value = true;
+}
+
+function handleContextMenuAction(action) {
+    switch (action) {
+        case "add":
+            openAddForm(null);
+            break;
+        case "edit":
+            if (contextMenuRow.value) {
+                openEditForm(contextMenuRow.value);
+            }
+            break;
+        case "delete":
+            if (contextMenuRow.value) {
+                selectedIds.value = [contextMenuRow.value.assetId];
+                showConfirm.value = true;
+            }
+            break;
+        case "duplicate":
+            if (contextMenuRow.value) {
+                openAddForm(contextMenuRow.value);
+            }
+            break;
+        default:
+            break;
+    }
+    hideContextMenu();
+}
+
 //#region Watch
 watch([search, department, assetType, page, pageSize], () => {
     loadData();
@@ -284,5 +389,27 @@ watch([search, department, assetType, page, pageSize], () => {
     width: 36px;
     height: 36px;
     overflow: hidden;
+}
+
+.context-menu {
+    position: fixed;
+    min-width: 180px;
+    background-color: #ffffff;
+    border: 1px solid #d6d6d6;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    padding: 4px 0;
+}
+
+.context-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #1f1f1f;
+}
+
+.context-menu-item:hover {
+    background-color: #f2f2f2;
 }
 </style>

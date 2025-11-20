@@ -108,6 +108,18 @@ namespace MISA.QLTS.Infrastructure.Repositories
                 {
                     property.SetValue(entity, Guid.NewGuid());
                 }
+                if(columnName.Equals("modified_date") || columnName.Equals("modified_by"))
+                {
+                    continue;
+                }
+                if (columnName.Equals("created_date"))
+                {
+                    property.SetValue(entity, DateTime.UtcNow.AddHours(7));
+                }
+                if (columnName.Equals("created_by"))
+                {
+                    property.SetValue(entity, "Phan Anh Quân");
+                }
                 columnBuilder.Append($"{columnName},");
                 columnParamBuilder.Append($"@{columnName},");
                 parameters.Add($"@{columnName}", property.GetValue(entity));
@@ -164,6 +176,18 @@ namespace MISA.QLTS.Infrastructure.Repositories
 
                 var columnAttr = prop.GetCustomAttribute<MISAColumnName>();
                 var columnName = columnAttr != null ? columnAttr.ColumnName : prop.Name;
+                if (columnName.Equals("created_date") || columnName.Equals("created_by"))
+                {
+                    continue;
+                }
+                if (columnName.Equals("modified_date"))
+                {
+                    prop.SetValue(entity, DateTime.UtcNow.AddHours(7));
+                }
+                if (columnName.Equals("modified_by"))
+                {
+                    prop.SetValue(entity, "Phan Anh Quân");
+                }
                 clauseBuilder.Append($"{columnName} = @{columnName}, ");
                 parameters.Add($"@{columnName}", prop.GetValue(entity));
             }

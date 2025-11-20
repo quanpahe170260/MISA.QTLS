@@ -1,5 +1,5 @@
 <template>
-    <div class="table-wrapper d-flex flex-direction-column" @keydown="onKey">
+    <div class="table-wrapper d-flex flex-direction-column" tabindex="0" @keydown="onKey">
         <table class="m-table fixed-table">
             <thead class="d-flex">
                 <tr>
@@ -24,11 +24,12 @@
 
             <tbody>
                 <tr v-for="(row, rindex) in rows" :key="row[props.rowKey]"
-                    :class="{ selected: isSelected(row[props.rowKey]), focused: focusIndex === rindex }" @click.stop>
+                    :class="{ selected: isSelected(row[props.rowKey]), focused: focusIndex === rindex }"
+                    @click="onRowClick(row, rindex, $event)" @contextmenu.prevent="onRowContextMenu(row, rindex, $event)">
 
                     <td class="row-check">
                         <input type="checkbox" class="square-checkbox" :checked="isSelected(row[props.rowKey])"
-                            @change="onCheckboxClick(row[props.rowKey], $event)" />
+                            @click.stop @change="onCheckboxClick(row[props.rowKey], rindex, $event)" />
                     </td>
 
                     <td v-for="col in visibleCols" :key="col.key"
@@ -48,36 +49,6 @@
             </tbody>
         </table>
 
-        <!-- pagination -->
-        <!-- <div class="pagination">
-            <div class="d-flex align-items-center left-section">
-                <span class="page-total">Tổng số: <b>200</b> bản ghi</span>
-
-                <select v-model="localPageSize" class="page-select mr-20">
-                    <option :value="20">20</option>
-                    <option :value="50">50</option>
-                    <option :value="100">100</option>
-                </select>
-
-                <div class="d-flex flex-direction-row justify-content-space-between align-items-center page-control">
-                    <div @click="go(-1)" :disabled="page <= 1"
-                        class="icon-mask icon-chevron-left-black page-nav-icon chevron-left">&lt;</div>
-                    <div v-for="p in visiblePages" :key="p" @click="changePage(p)" class="page-number-link"
-                        :class="{ 'active-page': p === page, 'page-dots': p === '...' }">
-                        {{ p }}
-                    </div>
-
-                    <div @click="go(1)" :disabled="page >= maxPage"
-                        class="icon-mask icon-chevron-right-black page-nav-icon chevron-right">&gt;</div>
-                </div>
-            </div>
-
-            <div class="right-data-section" ref="rightDataSection">
-                <span v-for="(total, index) in totals" :key="index" :style="getTotalStyle(index)" class="total-value">
-                    {{ formatNumber(total) }}
-                </span>
-            </div>
-        </div> -->
         <tfoot>
             <tr class="footer-row">
 
@@ -130,12 +101,16 @@ const columnHeaders = ref([]);
 const rightDataSection = ref(null);
 const columnOffsets = ref([0, 0, 0, 0]);
 const selected = ref([]);
+const lastSelectedIndex = ref(null);
 const focusIndex = ref(0);
 const totalWidths = ["80px", "130px", "130px", "130px"];
 //#region Props
 const props = defineProps({
     columns: Array,
-    rows: Array,
+    rows: {
+        type: Array,
+        default: () => []
+    },
     page: Number,
     pageSize: Number,
     total: Number,
@@ -147,12 +122,16 @@ const props = defineProps({
         type: String,
         default: "id"
     },
+    selectedKeys: {
+        type: Array,
+        default: () => []
+    }
 });
 //#endregion
 const localCols = ref(JSON.parse(JSON.stringify(props.columns)));
 
 //#region Emits
-const emit = defineEmits(["update:page", "selection-change"]);
+const emit = defineEmits(["update:page", "update:pageSize", "selection-change", "edit-row", "open-add-form", "row-contextmenu"]);
 //#endregion
 
 /**
@@ -207,19 +186,29 @@ let startX = 0;
 let startWidth = 0;
 const visibleCols = computed(() => localCols.value.filter(col => !col.hidden));
 const startResize = (e, index) => {
+    e.preventDefault(); // tránh chọn text
+    e.stopPropagation(); // tránh row click
+
     resizing = true;
     colIndex = index;
     startX = e.clientX;
-    startWidth = localCols.value[index].width;
+
+    // Lấy width hiện tại từ columnHeaders DOM element để chính xác
+    const colEl = columnHeaders.value[index];
+    startWidth = colEl ? colEl.offsetWidth : localCols.value[index].width || 100;
+
     document.addEventListener("mousemove", resize);
     document.addEventListener("mouseup", stopResize);
 };
 
 const resize = (e) => {
     if (!resizing) return;
+
     const dx = e.clientX - startX;
+    // Giữ width >= 60px
     localCols.value[colIndex].width = Math.max(60, startWidth + dx);
-    // Recalculate offsets after resize
+
+    // Cập nhật offsets cho totals alignment
     calculateColumnOffsets();
 };
 
@@ -230,6 +219,75 @@ const stopResize = () => {
 };
 
 const isSelected = (id) => selected.value.includes(id);
+
+const arraysEqual = (a, b) => {
+    if (a.length !== b.length) return false;
+    return a.every((item, index) => item === b[index]);
+};
+
+const updateSelection = (newSelection, shouldEmit = true) => {
+    const unique = Array.from(new Set(newSelection));
+    if (arraysEqual(unique, selected.value)) {
+        return;
+    }
+    selected.value = unique;
+    if (shouldEmit) {
+        emit("selection-change", [...selected.value]);
+    }
+};
+
+const getRowId = (row) => row[props.rowKey];
+
+const getValidSelection = (selection) => {
+    if (!Array.isArray(selection)) {
+        return [];
+    }
+    if (!Array.isArray(props.rows)) {
+        return [];
+    }
+    const validIds = new Set(props.rows.map(row => getRowId(row)));
+    return selection.filter(id => validIds.has(id));
+};
+
+const buildRangeSelection = (startIndex, endIndex) => {
+    if (!Array.isArray(props.rows) || props.rows.length === 0) return [];
+    const start = Math.min(startIndex, endIndex);
+    const end = Math.max(startIndex, endIndex);
+    return props.rows.slice(start, end + 1).map(row => getRowId(row));
+};
+
+const onRowClick = (row, index, event) => {
+    const rowId = getRowId(row);
+    if (event.shiftKey && lastSelectedIndex.value !== null) {
+        const rangeSelection = buildRangeSelection(lastSelectedIndex.value, index);
+        updateSelection(rangeSelection);
+    } else if (event.ctrlKey || event.metaKey) {
+        if (isSelected(rowId)) {
+            updateSelection(selected.value.filter(item => item !== rowId));
+        } else {
+            updateSelection([...selected.value, rowId]);
+        }
+        lastSelectedIndex.value = index;
+    } else {
+        updateSelection([rowId]);
+        lastSelectedIndex.value = index;
+    }
+    focusIndex.value = index;
+};
+
+const onRowContextMenu = (row, index, event) => {
+    const rowId = getRowId(row);
+    if (!isSelected(rowId)) {
+        updateSelection([rowId]);
+    }
+    focusIndex.value = index;
+    emit("row-contextmenu", {
+        row,
+        index,
+        clientX: event.clientX,
+        clientY: event.clientY
+    });
+};
 const isAllSelected = computed(() => {
     return selected.value.length === props.rows.length && props.rows.length > 0;
 });
@@ -241,11 +299,10 @@ const isAllSelected = computed(() => {
  */
 const toggleSelectAll = (e) => {
     if (e.target.checked) {
-        selected.value = props.rows.map(r => r[props.rowKey]);
+        updateSelection(props.rows.map(r => getRowId(r)));
     } else {
-        selected.value = [];
+        updateSelection([]);
     }
-    emit("selection-change", selected.value);
 };
 
 /**
@@ -254,16 +311,20 @@ const toggleSelectAll = (e) => {
  * @param e 
  * CreatedBy: QuanPA - 17/11/2025
  */
-const onCheckboxClick = (id, e) => {
-    console.log("Row checkbox clicked:", id, "checked =", e.target.checked);
-    if (e.target.checked) {
-        if (!selected.value.includes(id)) {
-            selected.value.push(id);
-        }
-    } else {
-        selected.value = selected.value.filter(item => item !== id);
+const onCheckboxClick = (id, index, e) => {
+    if (e.shiftKey && lastSelectedIndex.value !== null) {
+        const rangeSelection = buildRangeSelection(lastSelectedIndex.value, index);
+        updateSelection(rangeSelection);
+        lastSelectedIndex.value = index;
+        return;
     }
-    emit("selection-change", selected.value);
+
+    if (e.target.checked) {
+        updateSelection([...selected.value, id]);
+    } else {
+        updateSelection(selected.value.filter(item => item !== id));
+    }
+    lastSelectedIndex.value = index;
 };
 
 /**
@@ -272,15 +333,16 @@ const onCheckboxClick = (id, e) => {
  * CreatedBy: QuanPA - 17/11/2025
  */
 const onKey = (e) => {
+    if (!Array.isArray(props.rows) || props.rows.length === 0) {
+        return;
+    }
     if (e.key === "ArrowDown") {
         focusIndex.value = Math.min(focusIndex.value + 1, props.rows.length - 1);
-        selected.value = [props.rows[focusIndex.value].id];
-    }
-    if (e.key === "ArrowUp") {
+        updateSelection([getRowId(props.rows[focusIndex.value])]);
+    } else if (e.key === "ArrowUp") {
         focusIndex.value = Math.max(focusIndex.value - 1, 0);
-        selected.value = [props.rows[focusIndex.value].id];
+        updateSelection([getRowId(props.rows[focusIndex.value])]);
     }
-    emit("selection-change", selected.value);
 };
 
 
@@ -405,6 +467,14 @@ const formatNumber = (num) => {
 watch(() => localCols.value, () => {
     calculateColumnOffsets();
 }, { deep: true });
+
+watch(() => props.rows, () => {
+    updateSelection(getValidSelection(selected.value), false);
+}, { deep: true });
+
+watch(() => props.selectedKeys, (newKeys) => {
+    updateSelection(getValidSelection(newKeys), false);
+}, { immediate: true, deep: true });
 //#endregion
 
 // Recalculate on window resize

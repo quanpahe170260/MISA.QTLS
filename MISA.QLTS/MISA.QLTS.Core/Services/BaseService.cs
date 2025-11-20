@@ -1,4 +1,5 @@
-﻿using MISA.QLTS.Core.Exceptions;
+﻿using MISA.QLTS.Core.Entities;
+using MISA.QLTS.Core.Exceptions;
 using MISA.QLTS.Core.Interfaces.Repositories;
 using MISA.QLTS.Core.Interfaces.Services;
 using MISA.QLTS.Core.MISAAtribute;
@@ -138,5 +139,25 @@ namespace MISA.QLTS.Core.Services
                 }
             }
         }
+
+        public void ValidateBusinessLogic(Asset asset, decimal numberOfYears)
+        {
+            // 1. Kiểm tra tỷ lệ hao mòn
+            //if (numberOfYears <= 0)
+            //{
+            //    throw new ValidateException("Số năm sử dụng phải lớn hơn 0");
+            //}
+
+            //decimal expectedDepreciationRate = 1m / numberOfYears;
+            //decimal actualDepreciationRate = asset.DepreciationValueYear / asset.OriginalPrice;
+
+            //if (actualDepreciationRate != expectedDepreciationRate)
+            //{
+            //    throw new ValidateException($"Tỷ lệ hao mòn phải bằng 1/{numberOfYears}");
+            //}
+
+            // 2. Kiểm tra hao mòn năm không lớn hơn nguyên giá
+        }
+
     }
 }

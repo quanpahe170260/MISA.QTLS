@@ -34,7 +34,7 @@
                         </div>
                         <!-- Ngày mua -->
                         <div class="form-group">
-                            <ms-date label="Ngày mua" required="">
+                            <ms-date label="Ngày mua" required="" v-model="datePurchase">
                                 <template #icon>
                                     <i class="icon-default icon-calendar"></i>
                                 </template>
@@ -67,11 +67,12 @@
                             <div class="d-flex flex-direction-column flex1 mr-16 ">
                                 <!-- Nguyên giá -->
                                 <div class="form-group">
-                                    <ms-input label="Nguyên giá" v-model="originalPrice" required="" align="right" />
+                                    <ms-input label="Nguyên giá" v-model="originalPrice" :is-number="true" required=""
+                                        align="right" />
                                 </div>
                                 <!-- Ngày mua -->
                                 <div class="form-group">
-                                    <ms-date label="Ngày bắt đầu sử dụng" required="">
+                                    <ms-date label="Ngày bắt đầu sử dụng" required="" v-model="createdDate">
                                         <template #icon>
                                             <i class="icon-default icon-calendar"></i>
                                         </template>
@@ -83,14 +84,15 @@
                                 </div>
                                 <!-- Giá trị hao mòn năm -->
                                 <div class="form-group">
-                                    <ms-input label="Giá trị hao mòn năm" v-model="annualDepreciation" required=""
-                                        align="right" />
+                                    <ms-input label="Giá trị hao mòn năm" :is-number="true" v-model="annualDepreciation"
+                                        required="" align="right" />
                                 </div>
                             </div>
                             <div class="d-flex flex-direction-column flex1">
                                 <!-- Tỷ lệ hao mòn -->
                                 <div class="form-group">
-                                    <ms-input label="Tỷ lệ hao mòn (%)" v-model="wareRate" required="" align="right" />
+                                    <ms-input label="Tỷ lệ hao mòn (%)" v-model="wareRate" :is-number="true" required=""
+                                        align="right" />
                                 </div>
                                 <!-- Năm theo dõi -->
                                 <div class="form-group">
@@ -138,6 +140,8 @@ import AssetApi from '@/apis/components/AssetApi.js';
 import { openToast } from "@/utils/showToast.js";
 import MsModalConfirm from '@/components/ms-modal/MsModalConfirm.vue';
 import MsInputNumber from '@/components/ms-input/MsInputNumber.vue';
+import { formatDateVN } from '@/utils/formatDate';
+import { formatNumber } from '@/utils/formatNumber';
 const lsAssetType = ref([]);
 const lsDepartment = ref([]);
 const generateCode = ref('');
@@ -152,6 +156,7 @@ const currentYear = new Date().getFullYear();
 const originalPrice = ref(0);
 const annualDepreciation = ref(0);
 const quantity = ref(0);
+const createdDate = new Date().toISOString().split("T")[0];
 const localData = ref({
     assetId: null,
     assetCode: '',
@@ -238,9 +243,15 @@ async function getAllAssetType() {
 }
 
 onMounted(async () => {
-    lsAssetType.value = await getAllAssetType();
-    lsDepartment.value = await getAllDepartment();
-    generateCode.value = await generateAssetCode();
+    const [assetTyps, department, generatedAssetCode] = await Promise.all([
+        getAllAssetType(),
+        getAllDepartment(),
+        generateAssetCode()
+    ])
+
+    lsAssetType.value = assetTyps;
+    lsDepartment.value = department;
+    generateCode.value = generatedAssetCode;
 });
 
 /**
@@ -249,16 +260,32 @@ onMounted(async () => {
  */
 const saveAsset = async () => {
     try {
-        const payload = {
+        if (annualDepreciation.value > originalPrice.value) {
+            openToast("error", "Thất bại", "Hao mòn năm phải nhỏ hơn hoặc bằng nguyên giá");
+            return;
+        }
+
+        const basePayload = {
             assetCode: generateCode.value,
-            assetName: assetTypeName.value,
+            assetName: assetName.value,
             datePurchase: formData.value.datePurchase,
             quantity: parseFloat(formData.value.quantity) || 1,
             originalPrice: parseFloat(originalPrice.value),
             depreciationValueYear: parseFloat(annualDepreciation.value),
             assetTypeId: selectedAssetTypeId.value,
-            departmentId: selectedDepartmentId.value,
+            departmentId: selectedDepartmentId.value
         };
+        const payload = { ...basePayload };
+        const currentUser = "Phan Anh Quân";
+        if (props.mode === 'add' || props.mode === 'copy') {
+            payload.createdDate = createdDate.value;
+            payload.createdBy = currentUser;
+            payload.modifiedBy = currentUser;
+        } else if (props.mode === 'edit') {
+            payload.modifiedDate = createdDate.value;
+            payload.modifiedBy = currentUser;
+            payload.createdBy = currentUser;
+        }
         let response;
         if (props.mode === 'add' || props.mode === 'copy') {
             response = await AssetApi.create(payload);
@@ -278,13 +305,16 @@ const saveAsset = async () => {
         openToast("error", "Thất bại", error.response.data.message || "Lưu dữ liệu thất bại");
     }
 }
-console.log('localData', localData.value);
 /**
  * Hàm mở form confirm
  * CreatedBy: QuanPA - 18/11/2025
  */
 function openConfirm() {
-    showConfirm.value = true
+    if (props.mode === 'edit') {
+        showConfirm.value = true
+    } else {
+        saveAsset();
+    }
 }
 
 /**
@@ -302,7 +332,18 @@ function closeConfirm() {
 function handleCancel() {
     closeConfirm()
 }
-
+async function resetForm() {
+    generateCode.value = await generateAssetCode();
+    assetName.value = "";
+    selectedDepartmentId.value = null;
+    selectedAssetTypeId.value = null;
+    yearOfUse.value = 0;
+    wareRate.value = 0;
+    originalPrice.value = 0;
+    annualDepreciation.value = 0;
+    quantity.value = 0;
+    formData.value.datePurchase = new Date().toISOString().split("T")[0];
+}
 /**
  * Hàm xác nhận lưu
  * CreatedBy: QuanPA - 18/11/2025
@@ -316,7 +357,29 @@ const modalTitle = computed(() => {
     return props.mode === 'edit' ? 'Sửa tài sản' : 'Thêm tài sản';
 });
 //#endregion
+function loadEditData(data) {
+    localData.value = JSON.parse(JSON.stringify(data));
+    generateCode.value = data.assetCode;
+    assetName.value = data.assetName;
+    selectedAssetTypeId.value = data.assetTypeId;
+    selectedDepartmentId.value = data.departmentId;
+    originalPrice.value = data.originalPrice;
+    wareRate.value = data.wearRate;
+    formData.value.datePurchase = data.datePurchase;
+    quantity.value = data.quantity;
+}
 
+async function loadCopyData(data) {
+    localData.value = {};
+    generateCode.value = await generateAssetCode();
+    assetName.value = data.assetName;
+    selectedAssetTypeId.value = data.assetTypeId;
+    selectedDepartmentId.value = data.departmentId;
+    originalPrice.value = data.originalPrice;
+    wareRate.value = data.wearRate;
+    formData.value.datePurchase = data.datePurchase;
+    quantity.value = data.quantity;
+}
 //#region watch
 watch(selectedDepartmentId, (newVal) => {
     const found = lsDepartment.value.find(x => x.value === newVal);
@@ -338,27 +401,50 @@ watch([originalPrice, wareRate], ([newPrice, newRate]) => {
     }
 });
 watch(() => props.data, (newVal) => {
-    if (props.mode === 'edit' && newVal) {
-        localData.value = { ...newVal };
-        generateCode.value = newVal.assetCode;
-        assetName.value = newVal.assetName;
-        originalPrice.value = newVal.originalPrice;
-        selectedAssetTypeId.value = newVal.assetTypeId;
-        selectedDepartmentId.value = newVal.departmentId;
-        formData.value.datePurchase = newVal.datePurchase;
-        originalPrice.value = newVal.originalPrice;
-        wareRate.value = newVal.wearRate;
+    if (!newVal) return;
+
+    const data = JSON.parse(JSON.stringify(newVal)); // ✔ clone sâu 100%
+
+    if (props.mode === 'edit') {
+        localData.value = data;
+        generateCode.value = data.assetCode;
+        assetName.value = data.assetName;
+        selectedAssetTypeId.value = data.assetTypeId;
+        selectedDepartmentId.value = data.departmentId;
+        formData.value.datePurchase = data.datePurchase;
+        originalPrice.value = data.originalPrice;
+        wareRate.value = data.wearRate;
     }
-    else if (props.mode === 'copy' && newVal) {
-        assetName.value = newVal.assetName;
-        originalPrice.value = newVal.originalPrice;
-        selectedAssetTypeId.value = newVal.assetTypeId;
-        selectedDepartmentId.value = newVal.departmentId;
-        formData.value.datePurchase = newVal.datePurchase;
-        originalPrice.value = newVal.originalPrice;
-        wareRate.value = newVal.wearRate;
+    else if (props.mode === 'copy') {
+        // Copy không có id và code
+        localData.value = data;
+        assetName.value = data.assetName;
+        originalPrice.value = data.originalPrice;
+        selectedAssetTypeId.value = data.assetTypeId;
+        selectedDepartmentId.value = data.departmentId;
+        formData.value.datePurchase = data.datePurchase;
+        originalPrice.value = data.originalPrice;
+        wareRate.value = data.wearRate;
     }
 }, { immediate: true });
+watch(() => props.isOpen, (val) => {
+    if (val) {
+        // Nếu là thêm mới
+        if (props.mode === 'add') {
+            resetForm();
+        }
+
+        // Nếu là copy
+        if (props.mode === 'copy') {
+            loadCopyData(props.data);
+        }
+
+        // Nếu là edit
+        if (props.mode === 'edit') {
+            loadEditData(props.data);
+        }
+    }
+});
 
 //#endregion
 </script>

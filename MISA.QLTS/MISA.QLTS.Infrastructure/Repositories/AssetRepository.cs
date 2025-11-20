@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using MISA.QLTS.Core.DTOs.Response;
 using MISA.QLTS.Core.Entities;
+using MISA.QLTS.Core.Exceptions;
 using MISA.QLTS.Core.Interfaces.Repositories;
 using MISA.QLTS.Infrastructure.DapperContext;
 using System;
@@ -57,5 +58,6 @@ namespace MISA.QLTS.Infrastructure.Repositories
                 };
             }
         }
+        
     }
 }

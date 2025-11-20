@@ -42,6 +42,14 @@ namespace MISA.QLTS.Core.Entities
         [MISAColumnName("department_id")]
         [MISARequire("Không được để trống")]
         public Guid DepartmentId { get; set; }
+        [MISAColumnName("created_date")]
+        public DateTime CreatedDate { get; set; }
+        [MISAColumnName("created_by")]
+        public string CreatedBy { get; set; }
+        [MISAColumnName("modified_date")]
+        public DateTime ModifiedDate { get; set; }
+        [MISAColumnName("modified_by")]
+        public string ModifiedBy { get; set; }
 
     }
 }

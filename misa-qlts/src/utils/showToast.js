@@ -26,14 +26,14 @@ export function openToast(type, title, message) {
 function getIcon(type) {
   switch (type) {
     case 'success':
-      return 'icon-success icon-mask'
+      return 'fa-solid fa-circle-check fa-lg" style="color: #00d192;'
     case 'error':
-      return 'icon-exclamation'
+      return 'fa-solid fa-circle-exclamation fa-lg" style="color: #ff0000;'
     case 'warning':
-      return 'icon-warning icon-default'
+      return 'fa-solid fa-circle-exclamation fa-lg" style="color: #FFD43B;'
     case 'info':
-      return 'icon-info'
+      return 'fa-solid fa-circle-info fa-lg" style="color: #FFD43B;'
     default:
-      return 'icon-info'
+      return 'fa-solid fa-circle-info fa-lg" style="color: #FFD43B;'
   }
 }

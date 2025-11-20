@@ -6,15 +6,17 @@
         </label>
 
         <input class="input-control" :class="[{ disabled: disabled }]" :placeholder="placeholder" :disabled="disabled"
-            :value="modelValue" @input="onInput" @blur="onBlur" @focus="$emit('focus', $event)" :type="type"
+            :value="displayValue" @input="onInput" @blur="onBlur" @focus="$emit('focus', $event)" :type="type"
             :style="{ textAlign: align }" />
         <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import { formatNumber } from '@/utils/formatNumber';
 const errorMessage = ref('')
+const displayValue = ref("");
 //#region Props
 const props = defineProps({
     modelValue: {
@@ -44,6 +46,10 @@ const props = defineProps({
     align: {
         type: String,
         default: 'left'
+    },
+    isNumber: {
+        type: Boolean,
+        default: false
     }
 })
 //#endregion
@@ -51,13 +57,29 @@ const props = defineProps({
 //#region Emits
 const emit = defineEmits(["update:modelValue", "blur", "focus"])
 //#endregion
-
-function onInput(e) {
-    let val = e.target.value
-    if (props.type === "number") {
-        val = val === "" ? null : Number(val)
+watch(() => props.modelValue, (val) => {
+    if (props.isNumber) {
+        displayValue.value = formatNumber(val);
+    } else {
+        displayValue.value = val;
     }
-    emit("update:modelValue", val)
+}, { immediate: true });
+function onInput(e) {
+    let raw = e.target.value;
+
+    if (props.isNumber) {
+        if (/[^0-9.]/.test(raw)) {
+            errorMessage.value = "Chỉ được nhập số";
+        } else {
+            errorMessage.value = "";
+        }
+        raw = raw.replace(/\D/g, "");
+        displayValue.value = formatNumber(raw);
+        emit("update:modelValue", raw ? Number(raw) : "");
+    } else {
+        displayValue.value = raw;
+        emit("update:modelValue", raw);
+    }
 }
 
 function onBlur(e) {
