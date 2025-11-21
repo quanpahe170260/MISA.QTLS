@@ -1,6 +1,6 @@
 <template>
     <div class="modal-overlay" v-if="isOpen">
-        <div class="modal-container">
+        <div class="modal-container" ref="modalRef">
             <div class="modal-header">
                 <p class="modal-title">{{ title }}</p>
                 <button class="close-btn" @click="$emit('close')">
@@ -20,8 +20,9 @@
 </template>
 
 <script setup>
+import { onMounted, nextTick, watch, ref } from "vue";
 //#region Props
-defineProps({
+const props = defineProps({
     isOpen: {
         type: Boolean,
         required: true
@@ -31,11 +32,25 @@ defineProps({
         default: 'Modal Title'
     }
 });
-
 //#endregion
+
 //#region Emits
 defineEmits(['close']);
 //#endregion
+
+const modalRef = ref(null);
+
+watch(() => props.isOpen, async (val) => {
+    if (val) {
+        await nextTick();
+
+        const firstInput = modalRef.value?.querySelector("input, select, textarea");
+
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }
+});
 </script>
 
 <style scoped>

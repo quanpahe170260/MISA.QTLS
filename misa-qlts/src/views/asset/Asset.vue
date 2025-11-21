@@ -11,7 +11,7 @@
                 </div>
                 <!-- Filter asset type -->
                 <div class="filter-asset-type">
-                    <ms-select v-model="assetType" :options="lsAssetType">
+                    <ms-select v-model="assetType" :options="lsAssetType" width="220px">
                         <template #icon>
                             <i class="icon-default icon-filter"></i>
                         </template>
@@ -22,7 +22,7 @@
                 </div>
                 <!-- Filter department -->
                 <div class="filter-department">
-                    <ms-select v-model="department" :options="lsDepartment">
+                    <ms-select v-model="department" :options="lsDepartment" width="220px">
                         <template #icon>
                             <i class="icon-default icon-filter"></i>
                         </template>
@@ -52,7 +52,8 @@
                 <ms-table :columns="columns" :rows="lsAssets" :page="page" :page-size="pageSize" :total="total"
                     :selected-keys="selectedIds" @update:page="page = $event" @update:pageSize="pageSize = $event"
                     @selection-change="handleSelectionChange" rowKey="assetId" @edit-row="openEditForm"
-                    @open-add-form="openAddForm" @row-contextmenu="handleRowContextMenu" />
+                    @open-add-form="openAddForm" @row-contextmenu="handleRowContextMenu"
+                    :totals="[totalQuantity, totalPrice, totalDepreciation, totalRemain]" />
             </div>
         </div>
     </div>
@@ -67,7 +68,7 @@
     </div>
     <asset-form :is-open="isFormOpen" :mode="formMode" :data="selectedRow" @close="isFormOpen = false"
         @cancel="isFormOpen = false" @save="handleSave" />
-    <ms-modal-confirm :is-open="showConfirm" message="Bạn có muốn xóa">
+    <ms-modal-confirm :is-open="showConfirm" :message="confirmMessage">
         <ms-button type="secondary" @click="handleCancel" buttonComponentStyle="btn-modal border-1">Không</ms-button>
         <ms-button type="primary" @click="confirmSave" buttonComponentStyle="btn-modal">
             <p class="btn-text">Xóa</p>
@@ -104,6 +105,11 @@ const showConfirm = ref(false);
 const isContextMenuVisible = ref(false);
 const contextMenuRow = ref(null);
 const contextMenuPosition = ref({ x: 0, y: 0 });
+const confirmMessage = ref("");
+const totalQuantity = ref("");
+const totalPrice = ref("");
+const totalDepreciation = ref("");
+const totalRemain = ref("");
 /**
  * Hàm lấy tất cả tài sản
  * return Danh sách tài sản
@@ -170,6 +176,27 @@ async function getAllAssetType() {
     }
 }
 
+/**
+ * Hàm lấy tổng các value của asset
+ * CreatedBy: QuanPA - 17/11/2025
+ */
+async function getTotalAsset() {
+    try {
+        const response = await AssetApi.getTotalAsset();
+
+        const data = response.data.data;
+
+        totalQuantity.value = data.totalQuantity;
+        totalPrice.value = data.totalPrice;
+        totalDepreciation.value = data.totalDepreciation;
+        totalRemain.value = data.totalRemain ?? (data.totalPrice - data.totalDepreciation);
+
+    } catch (error) {
+        console.log("Lỗi lấy tổng tài sản", error);
+    }
+}
+
+
 onMounted(async () => {
     const [assets, assetTypes, departments] = await Promise.all([
         getAllAssets(),
@@ -180,6 +207,7 @@ onMounted(async () => {
     lsAssets.value = assets;
     lsAssetType.value = assetTypes;
     lsDepartment.value = departments;
+    await getTotalAsset();
 });
 
 onMounted(() => {
@@ -206,6 +234,14 @@ function onDeleteClick() {
         openToast("error", "Thất bại", "Chưa chọn tài sản nào");
         return;
     }
+
+    if (selectedIds.value.length === 1) {
+        const asset = lsAssets.value.find(a => a.assetId === selectedIds.value[0]);
+        confirmMessage.value = `Bạn có muốn xóa tài sản ${asset.assetCode}?`;
+    } else {
+        confirmMessage.value = `${selectedIds.value.length.toString().padStart(2, "0")} tài sản đã được chọn. Bạn có muốn xóa các tài sản này khỏi danh sách?`;
+    }
+
     showConfirm.value = true;
 }
 
@@ -271,6 +307,16 @@ async function loadData() {
 }
 
 /**
+ * Hàm xử lý sau khi lưu tài sản
+ * CreatedBy: QuanPA - 21/11/2025
+ */
+async function handleSave() {
+    isFormOpen.value = false;
+    selectedRow.value = null;
+    await loadData();
+}
+
+/**
  * Hàm mở form add dữ liệu
  * CreatedBy: QuanPA - 17/11/2025
  */
@@ -290,18 +336,33 @@ function openEditForm(row) {
     isFormOpen.value = true;
 }
 
+/**
+ * Hàm mở context menu
+ * @param event 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function handleContextMenuKeydown(event) {
     if (event.key === "Escape") {
         hideContextMenu();
     }
 }
 
+/**
+ * Hàm ẩn context menu
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function hideContextMenu() {
     if (!isContextMenuVisible.value) return;
     isContextMenuVisible.value = false;
     contextMenuRow.value = null;
 }
 
+/**
+ * Hàm set vị trí cho context menu
+ * @param x 
+ * @param y 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function setContextMenuPosition(x, y) {
     const MENU_WIDTH = 180;
     const MENU_HEIGHT = 160;
@@ -314,6 +375,11 @@ function setContextMenuPosition(x, y) {
     };
 }
 
+/**
+ * Hàm mở context menu ở row
+ * @param param0 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function handleRowContextMenu({ row, clientX, clientY }) {
     if (!row) {
         return;
@@ -325,6 +391,11 @@ function handleRowContextMenu({ row, clientX, clientY }) {
     isContextMenuVisible.value = true;
 }
 
+/**
+ * Hàm lựa chọn các hành động ở context menu
+ * @param action 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function handleContextMenuAction(action) {
     switch (action) {
         case "add":
@@ -338,6 +409,7 @@ function handleContextMenuAction(action) {
         case "delete":
             if (contextMenuRow.value) {
                 selectedIds.value = [contextMenuRow.value.assetId];
+                confirmMessage.value = `Bạn có muốn xóa tài sản ${contextMenuRow.value.assetCode}?`;
                 showConfirm.value = true;
             }
             break;

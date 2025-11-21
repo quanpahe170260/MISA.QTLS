@@ -41,6 +41,8 @@ td {
   border-bottom: 1px solid #fff;
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .row-check,
 .col-check {
@@ -259,4 +261,133 @@ td {
 
 .footer-total-cell {
   text-align: right;
+}
+
+/* Responsive cho màn hình 1920px (1920x1080) */
+@media screen and (min-width: 1920px) {
+  .table-wrapper {
+    height: calc(100vh - 160px);
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .m-table {
+    font-size: 13px;
+    width: 100%;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+
+  .fixed-table thead tr,
+  .fixed-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  thead {
+    height: 38px;
+    width: 100%;
+    display: table;
+    table-layout: fixed;
+  }
+
+  tbody {
+    height: calc(100vh - 160px - 38px - 42px);
+    width: 100%;
+    display: block;
+  }
+
+  /* Đảm bảo các row và column thẳng hàng */
+  .fixed-table thead tr {
+    display: table-row;
+    width: 100%;
+  }
+
+  .fixed-table thead tr th,
+  .fixed-table tbody tr td {
+    display: table-cell;
+    vertical-align: middle;
+  }
+
+  .fixed-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  td {
+    height: 42px;
+    padding: 8px 14px;
+  }
+
+  th {
+    padding: 8px 14px;
+  }
+
+  .row-check,
+  .col-check {
+    width: 42px;
+  }
+
+  .square-checkbox {
+    width: 14px;
+    height: 14px;
+    margin-left: 18px;
+    margin-right: 22px;
+  }
+
+  .square-checkbox:checked::after {
+    width: 10px;
+    height: 8px;
+  }
+
+  .footer-row {
+    height: 42px;
+    width: 100%;
+  }
+
+  tfoot {
+    width: 100%;
+    display: table;
+    table-layout: fixed;
+  }
+
+  .footer-row td {
+    height: 41px;
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+
+  .footer-record-count {
+    width: 160px;
+    padding-left: 18px;
+    font-size: 13px;
+  }
+
+  .page-select {
+    padding: 6px 10px;
+    width: 55px;
+    font-size: 13px;
+  }
+
+  .page-control {
+    gap: 5px;
+    margin-left: 18px;
+  }
+
+  .page-number-link,
+  .page-nav-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
+
+  .fuction-head {
+    width: 90px;
+  }
+
+  .fuction {
+    width: 90px;
+  }
 }

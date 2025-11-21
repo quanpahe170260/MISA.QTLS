@@ -26,7 +26,6 @@
   background: #fff;
   cursor: pointer;
   position: relative;
-  max-width: 220px;
   width: 100%;
 }
 
@@ -62,22 +61,35 @@
 }
 
 .dropdown-item {
-  padding: 10px 12px;
+  padding: 10px 12px 10px 28px;
   cursor: pointer;
   font-size: 14px;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  position: relative;
 }
 
 .dropdown-item:hover {
   background: #e7f1ff;
 }
 
+.option-label {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .selected {
   background: #dbeafe;
-  font-weight: 600;
 }
 
 .check-icon {
+  position: absolute;
+  left: 8px;
   font-size: 14px;
 }
+/* .dropdown-label {
+  color: #999;
+} */

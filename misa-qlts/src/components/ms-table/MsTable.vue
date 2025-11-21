@@ -25,7 +25,8 @@
             <tbody>
                 <tr v-for="(row, rindex) in rows" :key="row[props.rowKey]"
                     :class="{ selected: isSelected(row[props.rowKey]), focused: focusIndex === rindex }"
-                    @click="onRowClick(row, rindex, $event)" @contextmenu.prevent="onRowContextMenu(row, rindex, $event)">
+                    @click="onRowClick(row, rindex, $event)"
+                    @contextmenu.prevent="onRowContextMenu(row, rindex, $event)">
 
                     <td class="row-check">
                         <input type="checkbox" class="square-checkbox" :checked="isSelected(row[props.rowKey])"
@@ -85,7 +86,7 @@
 
                 <td v-for="(value, index) in totals" :key="'total' + index" class="footer-total-cell"
                     :style="{ textAlign: 'right', width: totalWidths[index] }">
-                    {{ formatNumber(value) }}
+                    <b> {{ formatNumber(value) }}</b>
                 </td>
                 <td :style="{ width: '94.4px' }"></td>
             </tr>
@@ -98,7 +99,6 @@
 import { ref, watch, computed, onMounted, onUnmounted, nextTick } from "vue";
 
 const columnHeaders = ref([]);
-const rightDataSection = ref(null);
 const columnOffsets = ref([0, 0, 0, 0]);
 const selected = ref([]);
 const lastSelectedIndex = ref(null);
@@ -143,6 +143,10 @@ const openEditForm = (row) => {
     emit("edit-row", row);
 };
 
+/**
+ * Hàm mở form thêm (copy từ row)
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const openAddForm = (row) => {
     emit("open-add-form", row);
 };
@@ -185,6 +189,10 @@ let colIndex = null;
 let startX = 0;
 let startWidth = 0;
 const visibleCols = computed(() => localCols.value.filter(col => !col.hidden));
+/**
+ * Bắt đầu resize một cột
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const startResize = (e, index) => {
     e.preventDefault(); // tránh chọn text
     e.stopPropagation(); // tránh row click
@@ -201,6 +209,10 @@ const startResize = (e, index) => {
     document.addEventListener("mouseup", stopResize);
 };
 
+/**
+ * Xử lý khi đang kéo resize
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const resize = (e) => {
     if (!resizing) return;
 
@@ -212,19 +224,36 @@ const resize = (e) => {
     calculateColumnOffsets();
 };
 
+
+/**
+ * Kết thúc hành động resize
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const stopResize = () => {
     resizing = false;
     document.removeEventListener("mousemove", resize);
     document.removeEventListener("mouseup", stopResize);
 };
 
+/**
+ * Kiểm tra một row có được chọn hay không
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const isSelected = (id) => selected.value.includes(id);
 
+/**
+ * So sánh hai mảng selection
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const arraysEqual = (a, b) => {
     if (a.length !== b.length) return false;
     return a.every((item, index) => item === b[index]);
 };
 
+/**
+ * Cập nhật danh sách selection và emit event
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const updateSelection = (newSelection, shouldEmit = true) => {
     const unique = Array.from(new Set(newSelection));
     if (arraysEqual(unique, selected.value)) {
@@ -236,8 +265,16 @@ const updateSelection = (newSelection, shouldEmit = true) => {
     }
 };
 
+/**
+ * Lấy ID của một row
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const getRowId = (row) => row[props.rowKey];
 
+/**
+ * Lọc selection để đảm bảo chỉ lấy những ID còn tồn tại trong rows
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const getValidSelection = (selection) => {
     if (!Array.isArray(selection)) {
         return [];
@@ -249,6 +286,10 @@ const getValidSelection = (selection) => {
     return selection.filter(id => validIds.has(id));
 };
 
+/**
+ * Tạo selection theo range (Shift + click)
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const buildRangeSelection = (startIndex, endIndex) => {
     if (!Array.isArray(props.rows) || props.rows.length === 0) return [];
     const start = Math.min(startIndex, endIndex);
@@ -256,6 +297,10 @@ const buildRangeSelection = (startIndex, endIndex) => {
     return props.rows.slice(start, end + 1).map(row => getRowId(row));
 };
 
+/**
+ * Xử lý khi click vào row
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const onRowClick = (row, index, event) => {
     const rowId = getRowId(row);
     if (event.shiftKey && lastSelectedIndex.value !== null) {
@@ -275,6 +320,10 @@ const onRowClick = (row, index, event) => {
     focusIndex.value = index;
 };
 
+/**
+ * Xử lý click chuột phải lên row
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const onRowContextMenu = (row, index, event) => {
     const rowId = getRowId(row);
     if (!isSelected(rowId)) {
@@ -288,6 +337,11 @@ const onRowContextMenu = (row, index, event) => {
         clientY: event.clientY
     });
 };
+
+/**
+ * Hàm kiểm tra xem có phải đang select-all hay không
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const isAllSelected = computed(() => {
     return selected.value.length === props.rows.length && props.rows.length > 0;
 });
@@ -356,6 +410,11 @@ watch(localPageSize, (newSize) => {
     emit("update:pageSize", newSize);
     emit("update:page", 1);
 });
+
+/**
+ * Hàm chuyển trang
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const go = (step) => {
     const newPage = props.page + step;
     if (newPage >= 1 && newPage <= maxPage.value) {
@@ -363,7 +422,10 @@ const go = (step) => {
     }
 };
 
-/// Calculate column positions for totals alignment
+/**
+ * Hàm tính lại vị trí cột để align totals
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const calculateColumnOffsets = () => {
     nextTick(() => {
         const targetKeys = ['assetCode', 'assetName', 'assetTypeName', 'departmentName'];
@@ -426,35 +488,10 @@ const calculateColumnOffsets = () => {
     });
 };
 
-const getTotalStyle = (index) => {
-    if (columnOffsets.value.length === 0) {
-        return { marginLeft: index === 0 ? '0' : '30px' };
-    }
-
-    const rightSection = rightDataSection.value;
-    const tableWrapper = document.querySelector('.table-wrapper');
-
-    if (!rightSection || !tableWrapper) {
-        return { marginLeft: index === 0 ? '0' : '30px' };
-    }
-
-    const wrapperRect = tableWrapper.getBoundingClientRect();
-    const sectionRect = rightSection.getBoundingClientRect();
-
-    // Calculate the left position of right-data-section relative to table wrapper
-    const sectionLeftRelative = sectionRect.left - wrapperRect.left;
-
-    // Get the target column position
-    const targetOffset = columnOffsets.value[index] || 0;
-
-    // Calculate margin-left to align with column
-    const marginLeft = targetOffset - sectionLeftRelative;
-
-    return {
-        marginLeft: index === 0 ? `${Math.max(0, marginLeft)}px` : `${Math.max(0, marginLeft - (columnOffsets.value[index - 1] || 0) + sectionLeftRelative)}px`
-    };
-};
-
+/**
+ * Format số theo locale VN
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const formatNumber = (num) => {
     if (typeof num === 'number') {
         return num.toLocaleString('vi-VN');
@@ -477,7 +514,10 @@ watch(() => props.selectedKeys, (newKeys) => {
 }, { immediate: true, deep: true });
 //#endregion
 
-// Recalculate on window resize
+/**
+ * Hàm xử lý khi window được resize
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 const handleResize = () => {
     calculateColumnOffsets();
 };

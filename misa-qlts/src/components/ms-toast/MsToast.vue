@@ -13,12 +13,14 @@
 <script setup>
 import { computed } from "vue";
 
+//#region Props
 const props = defineProps({
     type: String,
     title: String,
     message: String,
     icon: String
 });
+//#endregion
 
 const toastClass = computed(() => props.type || "success");
 </script>

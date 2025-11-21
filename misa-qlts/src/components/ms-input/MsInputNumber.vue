@@ -5,7 +5,7 @@
             <span v-if="isRequired" class="required-icon">*</span>
         </span>
 
-        <InputNumber class="input-text" :min="0" :mode="mode" :showButtons="hasButton"
+        <InputNumber tabindex="0" class="input-text" :min="0" :mode="mode" :showButtons="hasButton"
             :maxFractionDigits="numType === 'decimal' ? 22 : 0" v-model="displayNumber"
             :pt="{ pcInputText: { root: { tabindex: tabindex } } }">
             <template #incrementicon>
@@ -26,6 +26,7 @@
 import { computed } from 'vue'
 import InputNumber from 'primevue/inputnumber'
 
+//#region Props
 const props = defineProps({
     label: String,
     type: String,
@@ -40,10 +41,12 @@ const props = defineProps({
     hasButton: Boolean,
     numType: String,
 })
+//#endregion
 
+//#region Emis
 const emit = defineEmits(['update:modelValue'])
+//#endregion
 
-// Giá trị hiển thị với 2 chữ số
 const displayNumber = computed({
     get() {
         if (props.modelValue === null || props.modelValue === undefined || props.modelValue === '')

@@ -21,5 +21,11 @@ namespace MISA.QLTS.Core.Interfaces.Services
         /// <returns>Danh sách tài sản theo tìm kiếm, phân trang</returns>
         /// CreatedBy: QuanPA - 14/11/2025
         Task<PagedResult<AssetResponseDTO>> GetPagedAsync(int page, int pageSize, string? departmentID, string assetTypeID, string? search);
+        /// <summary>
+        /// Hàm lấy tổng
+        /// </summary>
+        /// <returns></returns>
+        /// CreatedBy: QuanPA - 18/11/2025
+        Task<AssetTotalResponse> GetTotalAsset();
     }
 }

@@ -64,6 +64,12 @@ watch(() => props.modelValue, (val) => {
         displayValue.value = val;
     }
 }, { immediate: true });
+
+/**
+ * Hàm validate dữ liệu số 
+ * @param e 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function onInput(e) {
     let raw = e.target.value;
 
@@ -82,6 +88,11 @@ function onInput(e) {
     }
 }
 
+/**
+ * Hàm hiển thị lỗi
+ * @param e 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function onBlur(e) {
     if (props.required && (props.modelValue === '' || props.modelValue === null)) {
         errorMessage.value = 'Trường này không được để trống'

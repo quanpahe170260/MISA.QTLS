@@ -26,6 +26,7 @@
 import { ref, watch } from "vue";
 import Calendar from "primevue/calendar";
 const calendarRef = ref();
+//#region Props
 const props = defineProps({
     modelValue: {
         type: [String, Date, null],
@@ -40,8 +41,11 @@ const props = defineProps({
         default: "dd/mm/yy"
     }
 });
+//#endregion
 
+//#region Emits
 const emit = defineEmits(["update:modelValue", "blur", "focus"]);
+//#endregion
 
 const internalValue = ref(
     props.modelValue ? new Date(props.modelValue) : new Date()
@@ -59,6 +63,10 @@ watch(internalValue, (val) => {
     emit("update:modelValue", val);
 });
 
+/**
+ * Hàm mở popup calendar
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function openCalendar() {
     if (calendarRef.value?.$el) {
         const input = calendarRef.value.$el.querySelector("input");

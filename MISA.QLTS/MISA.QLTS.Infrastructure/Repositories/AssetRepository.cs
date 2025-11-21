@@ -4,6 +4,7 @@ using MISA.QLTS.Core.Entities;
 using MISA.QLTS.Core.Exceptions;
 using MISA.QLTS.Core.Interfaces.Repositories;
 using MISA.QLTS.Infrastructure.DapperContext;
+using MISA.QLTS.Infrastructure.Helper;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -58,6 +59,18 @@ namespace MISA.QLTS.Infrastructure.Repositories
                 };
             }
         }
-        
+
+        public async Task<AssetTotalResponse> GetTotalAsset()
+        {
+            var tableName = MISAAttributeHelper<Asset>.GetTableName();
+            var sql = $"SELECT SUM(quantity) AS total_quantity, SUM(original_price) AS total_price, SUM(depreciation_value_year) AS total_depreciation FROM {tableName};";
+            using var connection = _context.CreateConnection();
+            var data = await connection.QueryFirstOrDefaultAsync<AssetTotalResponse>(sql);
+            if (data != null)
+            {
+                data.TotalRemain = data.TotalPrice - data.TotalDepreciation;
+            }
+            return data;
+        }
     }
 }

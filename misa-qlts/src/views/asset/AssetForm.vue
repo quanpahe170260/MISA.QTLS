@@ -107,7 +107,7 @@
         </template>
 
         <template #actions>
-            <ms-button type="secondary" @click="$emit('cancel')" buttonComponentStyle="btn-modal">
+            <ms-button type="secondary" @click="handleCancel" buttonComponentStyle="btn-modal">
                 <p class="btn-text">Hủy</p>
             </ms-button>
             <ms-button type="primary" @click="openConfirm" buttonComponentStyle="btn-modal">
@@ -116,13 +116,20 @@
         </template>
 
     </ms-modal>
-    <ms-modal-confirm :is-open="showConfirm"
+    <ms-modal-confirm :is-open="showConfirmCancelEdit"
         message="Thông tin thay đổi sẽ không được cập nhật nếu bạn không lưu. Bạn có muốn lưu các thay đổi này?">
-        <ms-button type="secondary" @click="handleCancel" buttonComponentStyle="btn-modal border-1">Hủy
+        <ms-button type="secondary" @click="closeCancelEdit" buttonComponentStyle="btn-modal border-1">Hủy
             bỏ</ms-button>
-        <button class="btn btn-no-save" @click="closeConfirm">Không lưu</button>
+        <button class="btn btn-no-save" @click="dontSaveEdit">Không lưu</button>
         <ms-button type="primary" @click="confirmSave" buttonComponentStyle="btn-modal">
             <p class="btn-text">Lưu</p>
+        </ms-button>
+    </ms-modal-confirm>
+    <ms-modal-confirm :is-open="showConfirmCancelAddCopy" message="Bạn có muốn hủy bỏ khai báo tài sản này?">
+        <ms-button type="secondary" @click="closeCancelAddCopy"
+            buttonComponentStyle="btn-modal border-1">Không</ms-button>
+        <ms-button type="primary" @click="confirmCloseAddCopy" buttonComponentStyle="btn-modal">
+            <p class="btn-text">Hủy bỏ</p>
         </ms-button>
     </ms-modal-confirm>
 </template>
@@ -140,8 +147,6 @@ import AssetApi from '@/apis/components/AssetApi.js';
 import { openToast } from "@/utils/showToast.js";
 import MsModalConfirm from '@/components/ms-modal/MsModalConfirm.vue';
 import MsInputNumber from '@/components/ms-input/MsInputNumber.vue';
-import { formatDateVN } from '@/utils/formatDate';
-import { formatNumber } from '@/utils/formatNumber';
 const lsAssetType = ref([]);
 const lsDepartment = ref([]);
 const generateCode = ref('');
@@ -155,8 +160,9 @@ const wareRate = ref(0);
 const currentYear = new Date().getFullYear();
 const originalPrice = ref(0);
 const annualDepreciation = ref(0);
-const quantity = ref(0);
-const createdDate = new Date().toISOString().split("T")[0];
+const quantity = ref(1);
+const datePurchase = ref(new Date().toISOString().split("T")[0]);
+const createdDate = ref(new Date().toISOString().split("T")[0]);
 const localData = ref({
     assetId: null,
     assetCode: '',
@@ -169,6 +175,8 @@ const localData = ref({
     departmentId: null,
 });
 const showConfirm = ref(false);
+const showConfirmCancelEdit = ref(false);
+const showConfirmCancelAddCopy = ref(false);
 //#region Props
 const props = defineProps({
     isOpen: {
@@ -184,9 +192,22 @@ const props = defineProps({
 const emit = defineEmits(['close', 'cancel', 'save']);
 //#endregion
 
-const formData = ref({
-    datePurchase: new Date().toISOString().split("T")[0]
-});
+/**
+ * Chuẩn hoá giá trị số nhận từ bảng (đã format chuỗi) về number
+ * @param {*} value 
+ * @param {*} defaultValue 
+ * @returns {number}
+ */
+function toNumber(value, defaultValue = 0) {
+    if (value === null || value === undefined || value === '') return defaultValue;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+        const normalized = value.replace(/\./g, '').replace(',', '.');
+        const parsed = parseFloat(normalized);
+        return isNaN(parsed) ? defaultValue : parsed;
+    }
+    return defaultValue;
+}
 
 /**
  * Hàm lấy danh sách bộ phận
@@ -260,20 +281,57 @@ onMounted(async () => {
  */
 const saveAsset = async () => {
     try {
+        if (!generateCode.value) {
+            openToast("error", "Thất bại", "Cần phải nhập thông tin Mã tài sản");
+            return;
+        }
+        if (!assetName.value) {
+            openToast("error", "Thất bại", "Cần phải nhập thông tin Tên tài sản");
+            return;
+        }
+        if (!selectedDepartmentId.value) {
+            openToast("error", "Thất bại", "Cần chọn bộ phận sử dụng");
+            return;
+        }
+        if (!selectedAssetTypeId.value) {
+            openToast("error", "Thất bại", "Cần chọn loại tài sản");
+            return;
+        }
+        if (!originalPrice.value || originalPrice.value <= 0) {
+            openToast("error", "Thất bại", "Nguyên giá phải lớn hơn 0");
+            return;
+        }
+        if (!wareRate.value || wareRate.value <= 0) {
+            openToast("error", "Thất bại", "Tỷ lệ hao mòn phải lớn hơn 0");
+            return;
+        }
+        if (!yearOfUse.value || yearOfUse.value <= 0) {
+            openToast("error", "Thất bại", "Số năm sử dụng phải lớn hơn 0");
+            return;
+        }
+        if (!annualDepreciation.value || annualDepreciation.value <= 0) {
+            openToast("error", "Thất bại", "Giá trị hao mòn năm phải lớn hơn 0");
+            return;
+        }
         if (annualDepreciation.value > originalPrice.value) {
             openToast("error", "Thất bại", "Hao mòn năm phải nhỏ hơn hoặc bằng nguyên giá");
+            return;
+        }
+        if (wareRate.value / 100 != 1 / yearOfUse.value) {
+            openToast("error", "Thất bại", "Tỷ lệ hao mòn bằng 1/ Số năm sử dụng");
             return;
         }
 
         const basePayload = {
             assetCode: generateCode.value,
             assetName: assetName.value,
-            datePurchase: formData.value.datePurchase,
-            quantity: parseFloat(formData.value.quantity) || 1,
+            datePurchase: datePurchase.value,
+            quantity: parseFloat(quantity.value) || 1,
             originalPrice: parseFloat(originalPrice.value),
             depreciationValueYear: parseFloat(annualDepreciation.value),
             assetTypeId: selectedAssetTypeId.value,
-            departmentId: selectedDepartmentId.value
+            departmentId: selectedDepartmentId.value,
+            remaining: annualDepreciation.value
         };
         const payload = { ...basePayload };
         const currentUser = "Phan Anh Quân";
@@ -310,11 +368,7 @@ const saveAsset = async () => {
  * CreatedBy: QuanPA - 18/11/2025
  */
 function openConfirm() {
-    if (props.mode === 'edit') {
-        showConfirm.value = true
-    } else {
-        saveAsset();
-    }
+    saveAsset();
 }
 
 /**
@@ -330,8 +384,51 @@ function closeConfirm() {
  * CreatedBy: QuanPA - 18/11/2025
  */
 function handleCancel() {
-    closeConfirm()
+    if (props.mode === 'edit') {
+        showConfirmCancelEdit.value = true;
+    } else {
+        showConfirmCancelAddCopy.value = true;
+    }
 }
+
+/**
+ * Hàm đóng form edit
+ * CreatedBy: QuanPA - 18/11/2025
+ */
+function closeCancelEdit() {
+    showConfirmCancelEdit.value = false;
+}
+
+/**
+ * Hàm không lưu dữ liệu chỉnh sửa
+ * CreatedBy: QuanPA - 18/11/2025
+ */
+function dontSaveEdit() {
+    showConfirmCancelEdit.value = false;
+    emit('close');
+}
+
+/**
+ * Hàm đóng form hủy thêm dữ liệu
+ * CreatedBy: QuanPA - 18/11/2025
+ */
+function closeCancelAddCopy() {
+    showConfirmCancelAddCopy.value = false;
+}
+
+/**
+ * Hàm đóng form thêm dữ liệu
+ * CreatedBy: QuanPA - 18/11/2025
+ */
+function confirmCloseAddCopy() {
+    showConfirmCancelAddCopy.value = false;
+    emit('close');
+}
+
+/**
+ * Hàm reset form
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 async function resetForm() {
     generateCode.value = await generateAssetCode();
     assetName.value = "";
@@ -341,8 +438,9 @@ async function resetForm() {
     wareRate.value = 0;
     originalPrice.value = 0;
     annualDepreciation.value = 0;
-    quantity.value = 0;
-    formData.value.datePurchase = new Date().toISOString().split("T")[0];
+    quantity.value = 1;
+    datePurchase.value = new Date().toISOString().split("T")[0];
+    createdDate.value = new Date().toISOString().split("T")[0];
 }
 /**
  * Hàm xác nhận lưu
@@ -356,29 +454,46 @@ function confirmSave() {
 const modalTitle = computed(() => {
     return props.mode === 'edit' ? 'Sửa tài sản' : 'Thêm tài sản';
 });
-//#endregion
+
+/**
+ * Hàm load dữ liệu để chỉnh sửa
+ * @param data 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 function loadEditData(data) {
+    console.log(data);
     localData.value = JSON.parse(JSON.stringify(data));
     generateCode.value = data.assetCode;
     assetName.value = data.assetName;
     selectedAssetTypeId.value = data.assetTypeId;
     selectedDepartmentId.value = data.departmentId;
-    originalPrice.value = data.originalPrice;
-    wareRate.value = data.wearRate;
-    formData.value.datePurchase = data.datePurchase;
-    quantity.value = data.quantity;
+    originalPrice.value = toNumber(data.originalPrice);
+    wareRate.value = toNumber(data.wearRate);
+    yearOfUse.value = toNumber(data.yearOfUse, yearOfUse.value);
+    datePurchase.value = data.datePurchase;
+    quantity.value = toNumber(data.quantity, 1);
+    annualDepreciation.value = toNumber(data.depreciationValueYear);
+    createdDate.value = data.createdDate || createdDate.value;
 }
 
+/**
+ * Hàm load dữ liệu để nhân bản
+ * @param data 
+ * CreatedBy: QuanPA - 18/11/2025
+ */
 async function loadCopyData(data) {
     localData.value = {};
     generateCode.value = await generateAssetCode();
     assetName.value = data.assetName;
     selectedAssetTypeId.value = data.assetTypeId;
     selectedDepartmentId.value = data.departmentId;
-    originalPrice.value = data.originalPrice;
-    wareRate.value = data.wearRate;
-    formData.value.datePurchase = data.datePurchase;
-    quantity.value = data.quantity;
+    originalPrice.value = toNumber(data.originalPrice);
+    wareRate.value = toNumber(data.wearRate);
+    yearOfUse.value = toNumber(data.yearOfUse, yearOfUse.value);
+    datePurchase.value = data.datePurchase;
+    quantity.value = toNumber(data.quantity, 1);
+    annualDepreciation.value = toNumber(data.depreciationValueYear);
+    createdDate.value = new Date().toISOString().split("T")[0];
 }
 //#region watch
 watch(selectedDepartmentId, (newVal) => {
@@ -400,51 +515,20 @@ watch([originalPrice, wareRate], ([newPrice, newRate]) => {
         annualDepreciation.value = '';
     }
 });
-watch(() => props.data, (newVal) => {
-    if (!newVal) return;
 
-    const data = JSON.parse(JSON.stringify(newVal)); // ✔ clone sâu 100%
-
-    if (props.mode === 'edit') {
-        localData.value = data;
-        generateCode.value = data.assetCode;
-        assetName.value = data.assetName;
-        selectedAssetTypeId.value = data.assetTypeId;
-        selectedDepartmentId.value = data.departmentId;
-        formData.value.datePurchase = data.datePurchase;
-        originalPrice.value = data.originalPrice;
-        wareRate.value = data.wearRate;
-    }
-    else if (props.mode === 'copy') {
-        // Copy không có id và code
-        localData.value = data;
-        assetName.value = data.assetName;
-        originalPrice.value = data.originalPrice;
-        selectedAssetTypeId.value = data.assetTypeId;
-        selectedDepartmentId.value = data.departmentId;
-        formData.value.datePurchase = data.datePurchase;
-        originalPrice.value = data.originalPrice;
-        wareRate.value = data.wearRate;
-    }
-}, { immediate: true });
 watch(() => props.isOpen, (val) => {
     if (val) {
-        // Nếu là thêm mới
         if (props.mode === 'add') {
             resetForm();
         }
-
-        // Nếu là copy
         if (props.mode === 'copy') {
             loadCopyData(props.data);
         }
-
-        // Nếu là edit
         if (props.mode === 'edit') {
             loadEditData(props.data);
         }
     }
-});
+}, { immediate: true });
 
 //#endregion
 </script>

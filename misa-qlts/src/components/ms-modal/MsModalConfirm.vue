@@ -20,11 +20,16 @@
 </template>
 
 <script setup>
+//#region Props
 defineProps({
     isOpen: { type: Boolean, default: false },
     message: { type: String, default: 'Bạn có muốn lưu các thay đổi này?' }
 });
+//#endregion
+
+//#region Emis
 defineEmits(['cancel', 'discard', 'save']);
+//#endregion
 </script>
 
 <style scoped>

@@ -48,5 +48,15 @@ namespace MISA.QLTS.Core.Services
             }
             return await _assetRepository.InsertAsync(asset);
         }
+
+        /// <summary>
+        /// Hàm lấy tổng
+        /// </summary>
+        /// <returns></returns>
+        /// CreatedBy: QuanPA - 18/11/2025
+        public async Task<AssetTotalResponse> GetTotalAsset()
+        {
+            return await _assetRepository.GetTotalAsset();
+        }
     }
 }
