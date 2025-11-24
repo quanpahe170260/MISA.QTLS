@@ -11,7 +11,7 @@
                 </div>
                 <!-- Filter asset type -->
                 <div class="filter-asset-type">
-                    <ms-select v-model="assetType" :options="lsAssetType" width="220px">
+                    <ms-select v-model="assetType" :options="lsAssetType" width="220px" placeholder="Loại tài sản">
                         <template #icon>
                             <i class="icon-default icon-filter"></i>
                         </template>
@@ -22,7 +22,7 @@
                 </div>
                 <!-- Filter department -->
                 <div class="filter-department">
-                    <ms-select v-model="department" :options="lsDepartment" width="220px">
+                    <ms-select v-model="department" :options="lsDepartment" width="220px" placeholder="Bộ phận sử dụng">
                         <template #icon>
                             <i class="icon-default icon-filter"></i>
                         </template>
@@ -52,8 +52,8 @@
                 <ms-table :columns="columns" :rows="lsAssets" :page="page" :page-size="pageSize" :total="total"
                     :selected-keys="selectedIds" @update:page="page = $event" @update:pageSize="pageSize = $event"
                     @selection-change="handleSelectionChange" rowKey="assetId" @edit-row="openEditForm"
-                    @open-add-form="openAddForm" @row-contextmenu="handleRowContextMenu"
-                    :totals="[totalQuantity, totalPrice, totalDepreciation, totalRemain]" />
+                    @open-add-form="openAddForm" @row-contextmenu="handleRowContextMenu" @delete-request="onDeleteClick"
+                    :totals="[totalQuantity, totalPrice, totalDepreciation, totalRemain]" :base-table-width="1266" />
             </div>
         </div>
     </div>
@@ -69,8 +69,9 @@
     <asset-form :is-open="isFormOpen" :mode="formMode" :data="selectedRow" @close="isFormOpen = false"
         @cancel="isFormOpen = false" @save="handleSave" />
     <ms-modal-confirm :is-open="showConfirm" :message="confirmMessage">
-        <ms-button type="secondary" @click="handleCancel" buttonComponentStyle="btn-modal border-1">Không</ms-button>
-        <ms-button type="primary" @click="confirmSave" buttonComponentStyle="btn-modal">
+        <ms-button tabindex="0" type="secondary" @click="handleCancel"
+            buttonComponentStyle="btn-modal border-1">Không</ms-button>
+        <ms-button tabindex="0" type="primary" @click="confirmSave" buttonComponentStyle="btn-modal">
             <p class="btn-text">Xóa</p>
         </ms-button>
     </ms-modal-confirm>
@@ -286,16 +287,16 @@ function handleSelectionChange(ids) {
     selectedIds.value = ids;
 }
 const columns = ref([
-    { key: "stt", label: "STT", align: "center", width: '50' },
+    { key: "stt", label: "STT", align: "center", baseWidth: 50 },
     { key: "assetId", label: "", align: "left", hidden: true },
-    { key: "assetCode", label: "Mã tài sản", width: '120' },
-    { key: "assetName", label: "Tên tài sản", width: '170' },
-    { key: "assetTypeName", label: "Loại tài sản", width: '170' },
-    { key: "departmentName", label: "Bộ phận sử dụng", width: '150' },
-    { key: "quantity", label: "Số lượng", align: "right", width: '80' },
-    { key: "originalPrice", label: "Nguyên giá", align: "right", width: '130' },
-    { key: "depreciationValueYear", label: "HM/KM lũy kế", align: "right", width: '130' },
-    { key: "remaining", label: "Giá trị còn lại", align: "right", width: '130' },
+    { key: "assetCode", label: "Mã tài sản", baseWidth: 120 },
+    { key: "assetName", label: "Tên tài sản", baseWidth: 170 },
+    { key: "assetTypeName", label: "Loại tài sản", baseWidth: 170 },
+    { key: "departmentName", label: "Bộ phận sử dụng", baseWidth: 150 },
+    { key: "quantity", label: "Số lượng", align: "right", baseWidth: 80 },
+    { key: "originalPrice", label: "Nguyên giá", align: "right", baseWidth: 130 },
+    { key: "depreciationValueYear", label: "HM/KM lũy kế", align: "right", baseWidth: 130 },
+    { key: "remaining", label: "Giá trị còn lại", align: "right", baseWidth: 130 },
 ]);
 
 /**
@@ -321,6 +322,7 @@ async function handleSave() {
  * CreatedBy: QuanPA - 17/11/2025
  */
 function openAddForm(row) {
+    console.log(row);
     formMode.value = row ? "copy" : "add";
     selectedRow.value = row ? row : null;
     isFormOpen.value = true;
@@ -344,6 +346,12 @@ function openEditForm(row) {
 function handleContextMenuKeydown(event) {
     if (event.key === "Escape") {
         hideContextMenu();
+    }
+    // Xử lý phím Shift để thực hiện xóa
+    if (event.key === "Shift" && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        // Ngăn hành vi mặc định của phím Shift
+        event.preventDefault();
+        onDeleteClick();
     }
 }
 

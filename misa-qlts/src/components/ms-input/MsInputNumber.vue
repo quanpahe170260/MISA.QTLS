@@ -5,9 +5,9 @@
             <span v-if="isRequired" class="required-icon">*</span>
         </span>
 
-        <InputNumber tabindex="0" class="input-text" :min="0" :mode="mode" :showButtons="hasButton"
+        <InputNumber :tabindex="tabindex !== undefined ? tabindex : 0" class="input-text" :min="0" :mode="mode" :showButtons="hasButton"
             :maxFractionDigits="numType === 'decimal' ? 22 : 0" v-model="displayNumber"
-            :pt="{ pcInputText: { root: { tabindex: tabindex } } }">
+            :pt="tabindex !== undefined ? { pcInputText: { root: { tabindex: tabindex } } } : {}">
             <template #incrementicon>
                 <span class="icon-chevrons-up icon-default" tabindex="-1"></span>
             </template>
@@ -51,7 +51,8 @@ const displayNumber = computed({
     get() {
         if (props.modelValue === null || props.modelValue === undefined || props.modelValue === '')
             return ''
-        return String(props.modelValue).padStart(2, '0')
+        return props.modelValue
+
     },
     set(val) {
         const numericVal = Number(val)

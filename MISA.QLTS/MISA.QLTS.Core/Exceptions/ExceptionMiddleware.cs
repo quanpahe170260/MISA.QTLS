@@ -26,11 +26,11 @@ namespace MISA.QLTS.Core.Exceptions
             }
             catch (ValidateException ex)
             {
-                await HandleExceptionAsync(context, ex.Message, 200);
+                await HandleExceptionAsync(context, ex.Message, 400);
             }
             catch (BusinessException ex)
             {
-                await HandleExceptionAsync(context, ex.Message, 200);
+                await HandleExceptionAsync(context, ex.Message, 400);
             }
             catch (NotFoundException ex)
             {

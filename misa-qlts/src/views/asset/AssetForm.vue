@@ -29,8 +29,7 @@
                         <!-- Số lượng -->
                         <div class="form-group">
                             <!-- <ms-input label="Số lượng" v-model="assetCode" required="" type="number" /> -->
-                            <ms-input-number tabindex="5" hasButton isRequired size="large" v-model="quantity"
-                                label="Số lượng" />
+                            <ms-input-number hasButton isRequired size="large" v-model="quantity" label="Số lượng" />
                         </div>
                         <!-- Ngày mua -->
                         <div class="form-group">
@@ -46,7 +45,7 @@
                         <!-- Số năm sử dụng -->
                         <div class="form-group">
                             <!-- <ms-input label="Số năm sử dụng" v-model="yearOfUse" required="" type="number" /> -->
-                            <ms-input-number tabindex="5" hasButton isRequired size="large" v-model="yearOfUse"
+                            <ms-input-number hasButton isRequired size="large" v-model="yearOfUse"
                                 label="Số năm sử dụng" />
                         </div>
                     </div>
@@ -276,49 +275,57 @@ onMounted(async () => {
 });
 
 /**
+ * Hàm validate dữ liệu
+ * CreatedBy: QuanPA - 22/11/2025
+ */
+const validateAsset = () => {
+    if (!generateCode.value) {
+        return { valid: false, message: "Cần phải nhập thông tin Mã tài sản" };
+    }
+    if (!assetName.value) {
+        return { valid: false, message: "Cần phải nhập thông tin Tên tài sản" };
+    }
+    if (!selectedDepartmentId.value) {
+        return { valid: false, message: "Cần chọn bộ phận sử dụng" };
+    }
+    if (!selectedAssetTypeId.value) {
+        return { valid: false, message: "Cần chọn loại tài sản" };
+    }
+    if (!originalPrice.value || originalPrice.value <= 0) {
+        return { valid: false, message: "Nguyên giá phải lớn hơn 0" };
+    }
+    if (!wareRate.value || wareRate.value <= 0) {
+        return { valid: false, message: "Tỷ lệ hao mòn phải lớn hơn 0" };
+    }
+    if (!yearOfUse.value || yearOfUse.value <= 0) {
+        return { valid: false, message: "Số năm sử dụng phải lớn hơn 0" };
+    }
+    if (!annualDepreciation.value || annualDepreciation.value <= 0) {
+        return { valid: false, message: "Giá trị hao mòn năm phải lớn hơn 0" };
+    }
+    if (annualDepreciation.value > originalPrice.value) {
+        return { valid: false, message: "Hao mòn năm phải nhỏ hơn hoặc bằng nguyên giá" };
+    }
+    const roundedWareRate = Number((wareRate.value / 100).toFixed(2));
+    const roundedYearUse = Number((1 / yearOfUse.value).toFixed(2));
+
+    if (roundedWareRate !== roundedYearUse) {
+        return { valid: false, message: "Tỷ lệ hao mòn phải bằng 1 / Số năm sử dụng" };
+    }
+
+    return { valid: true };
+};
+
+
+/**
  * Hàm lưu tài sản
  * CreatedBy: QuanPA - 17/11/2025
  */
 const saveAsset = async () => {
     try {
-        if (!generateCode.value) {
-            openToast("error", "Thất bại", "Cần phải nhập thông tin Mã tài sản");
-            return;
-        }
-        if (!assetName.value) {
-            openToast("error", "Thất bại", "Cần phải nhập thông tin Tên tài sản");
-            return;
-        }
-        if (!selectedDepartmentId.value) {
-            openToast("error", "Thất bại", "Cần chọn bộ phận sử dụng");
-            return;
-        }
-        if (!selectedAssetTypeId.value) {
-            openToast("error", "Thất bại", "Cần chọn loại tài sản");
-            return;
-        }
-        if (!originalPrice.value || originalPrice.value <= 0) {
-            openToast("error", "Thất bại", "Nguyên giá phải lớn hơn 0");
-            return;
-        }
-        if (!wareRate.value || wareRate.value <= 0) {
-            openToast("error", "Thất bại", "Tỷ lệ hao mòn phải lớn hơn 0");
-            return;
-        }
-        if (!yearOfUse.value || yearOfUse.value <= 0) {
-            openToast("error", "Thất bại", "Số năm sử dụng phải lớn hơn 0");
-            return;
-        }
-        if (!annualDepreciation.value || annualDepreciation.value <= 0) {
-            openToast("error", "Thất bại", "Giá trị hao mòn năm phải lớn hơn 0");
-            return;
-        }
-        if (annualDepreciation.value > originalPrice.value) {
-            openToast("error", "Thất bại", "Hao mòn năm phải nhỏ hơn hoặc bằng nguyên giá");
-            return;
-        }
-        if (wareRate.value / 100 != 1 / yearOfUse.value) {
-            openToast("error", "Thất bại", "Tỷ lệ hao mòn bằng 1/ Số năm sử dụng");
+        const check = validateAsset();
+        if (!check.valid) {
+            openToast("error", "Thất bại", check.message);
             return;
         }
 

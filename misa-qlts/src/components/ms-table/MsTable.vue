@@ -1,5 +1,5 @@
 <template>
-    <div class="table-wrapper d-flex flex-direction-column" tabindex="0" @keydown="onKey">
+    <div class="table-wrapper d-flex flex-direction-column" tabindex="0" @keydown="onKey" ref="tableWrapperRef">
         <table class="m-table fixed-table">
             <thead class="d-flex">
                 <tr>
@@ -9,7 +9,8 @@
                     </th>
 
                     <th v-for="(col, i) in visibleCols" :key="col.key" :ref="el => { if (el) columnHeaders[i] = el }"
-                        :style="{ width: col.width + 'px', textAlign: col.align || 'left' }" class="col-header">
+                        :style="{ width: getColumnWidth(col, i) + 'px', textAlign: col.align || 'left' }"
+                        class="col-header">
                         {{ col.label }}
 
                         <!-- thanh resize -->
@@ -33,8 +34,8 @@
                             @click.stop @change="onCheckboxClick(row[props.rowKey], rindex, $event)" />
                     </td>
 
-                    <td v-for="col in visibleCols" :key="col.key"
-                        :style="{ width: col.width + 'px', textAlign: col.align || 'left' }">
+                    <td v-for="(col, cindex) in visibleCols" :key="col.key"
+                        :style="{ width: getColumnWidth(col, cindex) + 'px', textAlign: col.align || 'left' }">
                         <span v-if="col.key === 'stt'">
                             {{ (page - 1) * pageSize + rindex + 1 }}
                         </span>
@@ -73,7 +74,8 @@
                         <div @click="go(-1)" :disabled="page <= 1" class="page-nav-icon">&lt;</div>
 
                         <div v-for="p in visiblePages" :key="p" @click="changePage(p)" class="page-number-link"
-                            :class="{ 'active-page': p === page, 'page-dots': p === '...' }">
+                            :class="{ 'active-page': p === page, 'page-dots': p === '...' }"
+                            :style="{ cursor: p === '...' ? 'default' : 'pointer' }">
                             {{ p }}
                         </div>
 
@@ -104,6 +106,9 @@ const selected = ref([]);
 const lastSelectedIndex = ref(null);
 const focusIndex = ref(0);
 const totalWidths = ["80px", "130px", "130px", "130px"];
+const tableWrapperRef = ref(null);
+const tableWidth = ref(0);
+
 //#region Props
 const props = defineProps({
     columns: Array,
@@ -125,6 +130,10 @@ const props = defineProps({
     selectedKeys: {
         type: Array,
         default: () => []
+    },
+    baseTableWidth: {
+        type: Number,
+        default: null // Nếu có baseTableWidth, sẽ scale width theo tỷ lệ
     }
 });
 //#endregion
@@ -189,6 +198,48 @@ let colIndex = null;
 let startX = 0;
 let startWidth = 0;
 const visibleCols = computed(() => localCols.value.filter(col => !col.hidden));
+
+/**
+ * Tính width của cột dựa trên table width hiện tại
+ * Nếu có baseTableWidth và baseWidth, sẽ scale theo tỷ lệ
+ * Nếu không, sử dụng width cố định
+ * @param {Object} col - Column object
+ * @param {Number} index - Column index
+ * @returns {Number} - Width tính bằng pixel
+ * CreatedBy: QuanPA - 22/11/2025
+ */
+const getColumnWidth = (col, index) => {
+    const localCol = localCols.value[index] || col;
+
+    // Nếu đã được resize, dùng width đã resize (không scale lại)
+    if (localCol.isResized && localCol.width !== undefined) {
+        return typeof localCol.width === 'number' ? localCol.width : parseFloat(localCol.width) || 100;
+    }
+
+    // Lấy baseWidth hoặc width để tính toán
+    const baseWidth = col.baseWidth !== undefined ? col.baseWidth : (typeof col.width === 'number' ? col.width : parseFloat(col.width));
+
+    // Nếu có baseWidth/baseTableWidth, scale theo tỷ lệ table width
+    if (props.baseTableWidth && baseWidth !== undefined && !isNaN(baseWidth) && tableWidth.value > 0) {
+        const ratio = tableWidth.value / props.baseTableWidth;
+        return Math.round(baseWidth * ratio);
+    }
+
+    // Nếu width là string phần trăm
+    if (typeof col.width === 'string' && col.width.endsWith('%')) {
+        if (tableWidth.value > 0) {
+            return (tableWidth.value * parseFloat(col.width)) / 100;
+        }
+        return 100;
+    }
+
+    // Trả về width cố định
+    if (typeof baseWidth === 'number' && !isNaN(baseWidth)) {
+        return baseWidth;
+    }
+
+    return 100; // default width
+};
 /**
  * Bắt đầu resize một cột
  * CreatedBy: QuanPA - 18/11/2025
@@ -218,7 +269,10 @@ const resize = (e) => {
 
     const dx = e.clientX - startX;
     // Giữ width >= 60px
-    localCols.value[colIndex].width = Math.max(60, startWidth + dx);
+    const newWidth = Math.max(60, startWidth + dx);
+    localCols.value[colIndex].width = newWidth;
+    // Đánh dấu cột đã được resize để không scale lại
+    localCols.value[colIndex].isResized = true;
 
     // Cập nhật offsets cho totals alignment
     calculateColumnOffsets();
@@ -423,6 +477,23 @@ const go = (step) => {
 };
 
 /**
+ * Hàm chuyển đến trang cụ thể
+ * @param {Number|String} pageNumber - Số trang muốn chuyển đến
+ * CreatedBy: AI Assistant - 22/11/2025
+ */
+const changePage = (pageNumber) => {
+    // Không làm gì nếu click vào dấu "..."
+    if (pageNumber === '...' || typeof pageNumber !== 'number') {
+        return;
+    }
+
+    // Kiểm tra pageNumber hợp lệ
+    if (pageNumber >= 1 && pageNumber <= maxPage.value && pageNumber !== props.page) {
+        emit("update:page", pageNumber);
+    }
+};
+
+/**
  * Hàm tính lại vị trí cột để align totals
  * CreatedBy: QuanPA - 18/11/2025
  */
@@ -501,6 +572,24 @@ const formatNumber = (num) => {
 
 // Watch for column width changes
 //#region Watch
+watch(() => props.columns, (newColumns) => {
+    // Cập nhật localCols khi props.columns thay đổi, nhưng giữ lại width đã resize
+    const newLocalCols = JSON.parse(JSON.stringify(newColumns));
+    newLocalCols.forEach((newCol, index) => {
+        const oldCol = localCols.value[index];
+        if (oldCol && oldCol.isResized && oldCol.width !== undefined) {
+            // Giữ lại width đã resize
+            newCol.width = oldCol.width;
+            newCol.isResized = true;
+        }
+        // Đảm bảo baseWidth được copy
+        if (newColumns[index] && newColumns[index].baseWidth !== undefined) {
+            newCol.baseWidth = newColumns[index].baseWidth;
+        }
+    });
+    localCols.value = newLocalCols;
+}, { deep: true });
+
 watch(() => localCols.value, () => {
     calculateColumnOffsets();
 }, { deep: true });
@@ -512,19 +601,48 @@ watch(() => props.rows, () => {
 watch(() => props.selectedKeys, (newKeys) => {
     updateSelection(getValidSelection(newKeys), false);
 }, { immediate: true, deep: true });
+
+watch(() => tableWidth.value, () => {
+    // Khi table width thay đổi, cập nhật lại width nếu chưa resize
+    nextTick(() => {
+        calculateColumnOffsets();
+    });
+});
 //#endregion
+
+/**
+ * Hàm cập nhật table width
+ * CreatedBy: AI Assistant - 22/11/2025
+ */
+const updateTableWidth = () => {
+    nextTick(() => {
+        if (tableWrapperRef.value) {
+            tableWidth.value = tableWrapperRef.value.offsetWidth;
+        }
+    });
+};
 
 /**
  * Hàm xử lý khi window được resize
  * CreatedBy: QuanPA - 18/11/2025
  */
 const handleResize = () => {
+    updateTableWidth();
     calculateColumnOffsets();
 };
 
 onMounted(() => {
+    updateTableWidth();
     calculateColumnOffsets();
     window.addEventListener('resize', handleResize);
+
+    // Watch cho table wrapper để update width khi có thay đổi
+    if (tableWrapperRef.value) {
+        const resizeObserver = new ResizeObserver(() => {
+            updateTableWidth();
+        });
+        resizeObserver.observe(tableWrapperRef.value);
+    }
 });
 
 onUnmounted(() => {

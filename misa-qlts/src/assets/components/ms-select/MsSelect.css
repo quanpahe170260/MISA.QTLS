@@ -44,6 +44,11 @@
 
 .dropdown-label {
   flex: 1;
+  white-space: nowrap; /* Không xuống dòng */
+  overflow: hidden; /* Ẩn phần tràn */
+  text-overflow: ellipsis; /* Hiển thị ... */
+  display: inline-block; /* Để các thuộc tính hoạt động ổn định */
+  max-width: 100%;
 }
 
 .dropdown-list {
