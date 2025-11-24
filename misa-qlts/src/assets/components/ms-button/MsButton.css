@@ -1,0 +1,48 @@
+.ms-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 20px 10px 12px;
+  border: none;
+  border-radius: 2.5px;
+  cursor: pointer;
+  justify-content: center;
+  height: 36px;
+  width: 100%;
+}
+
+.ms-button--primary {
+  background-color: #1aa4c8;
+  color: #fff;
+}
+.ms-button--secondary {
+  background-color: #fff;
+  color: #333;
+}
+.ms-button--thugon {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ms-button__icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ms-button__icon--right {
+  margin-left: 8px;
+}
+
+.btnAdd {
+  border-radius: 4px 0 0 4px;
+  border-right: 1px solid #176cd1;
+}
+
+.btnDownIcon {
+  border-radius: 0 4px 4px 0;
+}
+
+.btn-text {
+  font-size: 13px;
+}
+.btn-modal {
+  width: 100px;
+}

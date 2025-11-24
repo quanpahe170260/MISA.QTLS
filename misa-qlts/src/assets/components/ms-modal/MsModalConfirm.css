@@ -1,0 +1,65 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.modal-container {
+  width: 450px;
+  background: white;
+  border-radius: 2.5px;
+  padding: 40px 24px 24px 24px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 38px;
+  margin-bottom: 12px;
+  width: 80px;
+}
+
+.modal-message {
+  font-size: 13px;
+  margin-bottom: 24px;
+  color: #444;
+  text-align: left;
+  font-weight: 500;
+}
+
+.nothing {
+  height: 45px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: right;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 2.5px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #f3f3f3;
+}
+
+.btn-no-save {
+  background: #e8f6ff;
+  color: #2a89d5;
+  border: 1px solid #1aa4c8;
+}
+
+.btn-save {
+  background: #0098d1;
+  color: white;
+}

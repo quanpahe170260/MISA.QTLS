@@ -1,0 +1,273 @@
+/* Icon default */
+.icon-default {
+  background-image: url('@/assets/images/qlts-icon.svg');
+  background-repeat: no-repeat;
+  width: 20px;
+  height: 20px;
+}
+
+/* Icon mask */
+.icon-mask {
+  mask-image: url('@/assets/images/qlts-icon.svg');
+  mask-repeat: no-repeat;
+  width: 24px;
+  height: 24px;
+  background-color: white;
+}
+
+/* Icon navigation */
+.icon-navigation {
+  width: 8px;
+  height: 16px;
+  background-position: -204px -332px;
+}
+
+/* icon notification */
+.icon-notification {
+  width: 16px;
+  height: 20px;
+  background-position: -332px -109px;
+}
+
+/* icon menu */
+.icon-menu {
+  width: 18px;
+  height: 18px;
+  background-position: -199px -23px;
+}
+
+/* icon helper */
+.icon-helper {
+  width: 18px;
+  height: 18px;
+  background-position: -67px -67px;
+}
+
+/* avatar icon */
+.icon-avatar {
+  width: 18px;
+  height: 18px;
+  background-position: -23px -23px;
+}
+
+/* Chevrons icon */
+.icon-chevrons-down {
+  width: 8px;
+  height: 5px;
+  background-position: -72px -338px;
+}
+
+.icon-chevrons-up {
+  width: 8px;
+  height: 5px;
+  background-position: -28px -338px;
+}
+
+.icon-chevron-left {
+  width: 6px;
+  height: 8px;
+  mask-position: -206px -248px;
+}
+
+.icon-chevron-left-black {
+  width: 6px;
+  height: 8px;
+  mask-position: -206px -248px;
+  background-color: black;
+}
+
+.icon-chevron-right {
+  width: 5px;
+  height: 8px;
+  mask-position: -250px -248px;
+}
+.icon-chevron-right-black {
+  width: 5px;
+  height: 8px;
+  mask-position: -250px -248px;
+  background-color: black;
+}
+
+.icon-chevron-down {
+  width: 12px;
+  height: 7px;
+  mask-position: -334px -293px;
+}
+
+/* logo */
+.logo {
+  width: 36px;
+  height: 36px;
+  background-position: -20px -680px;
+}
+
+/* icon home */
+.icon-home {
+  width: 22px;
+  height: 22px;
+  background-position: -21px -153px;
+}
+
+.icon-home-active {
+  width: 20px;
+  height: 21px;
+  background-position: -22px -198px;
+}
+
+/* icon asset */
+.icon-asset {
+  width: 22px;
+  height: 23px;
+  background-position: -65px -153px;
+}
+
+.icon-asset-active {
+  width: 22px;
+  height: 23px;
+  background-position: -65px -197px;
+}
+
+/* icon HTDB */
+.icon-HTDB {
+  width: 21px;
+  height: 23px;
+  background-position: -110px -153px;
+}
+
+.icon-HTDB-active {
+  width: 21px;
+  height: 22px;
+  background-position: -110px -197px;
+}
+
+/* icon-CCDC */
+.icon-CCDC {
+  width: 22px;
+  height: 22px;
+  background-position: -153px -153px;
+}
+
+.icon-CCDC-active {
+  width: 22px;
+  height: 22px;
+  background-position: -153px -197px;
+}
+
+/* icon category */
+.icon-category {
+  width: 22px;
+  height: 18px;
+  background-position: -197px -155px;
+}
+
+.icon-category-active {
+  width: 20px;
+  height: 17px;
+  background-position: -198px -200px;
+}
+
+/* icon search */
+.icon-search {
+  width: 22px;
+  height: 22px;
+  background-position: -241px -153px;
+}
+
+.icon-search-active {
+  width: 23px;
+  height: 23px;
+  background-position: -240px -196px;
+}
+
+/* icon report */
+.icon-report {
+  width: 22px;
+  height: 22px;
+  background-position: -329px -153px;
+}
+
+.icon-report-active {
+  width: 20px;
+  height: 20px;
+  background-position: -330px -198px;
+}
+
+/* icon search */
+.icon-lookup {
+  width: 18px;
+  height: 18px;
+  background-position: -243px -23px;
+}
+
+/* icon filter */
+.icon-filter {
+  width: 17px;
+  height: 16px;
+  background-position: -243px -69px;
+}
+
+/* icon excel */
+.icon-excel {
+  width: 18px;
+  height: 17px;
+  background-position: -287px -111px;
+}
+
+/* icon delete */
+.icon-delete {
+  width: 18px;
+  height: 18px;
+  background-position: -463px -111px;
+}
+
+/* icon plus */
+.icon-plus {
+  width: 10px;
+  height: 10px;
+  mask-position: -467px -423px;
+  background-color: white;
+}
+
+/* icon edit */
+.icon-edit {
+  width: 16px;
+  height: 16px;
+  background-position: -156px -68px;
+}
+
+/* icon copy */
+.icon-copy {
+  width: 16px;
+  height: 16px;
+  background-position: -244px -112px;
+}
+
+/* icon close */
+.icon-close {
+  width: 18px;
+  height: 18px;
+  background-position: -375px -287px;
+}
+
+/* icon warning */
+.icon-warning {
+  width: 24px;
+  height: 20px;
+  background-position: -416px -66px;
+}
+
+/* noti */
+.icon-success {
+  mask-position: -288px -376px;
+  mask-repeat: no-repeat;
+  background-color: #4cc56e;
+  width: 16px;
+  height: 16px;
+}
+
+/* icon calendar */
+.icon-calendar {
+  background-position: -287px -67px;
+  width: 18px;
+  height: 18px;
+}

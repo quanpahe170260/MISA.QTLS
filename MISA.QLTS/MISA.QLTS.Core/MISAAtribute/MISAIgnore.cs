@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MISA.QLTS.Core.MISAAtribute
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class MISAUpdateIgnore : Attribute
+    public class MISAIgnore : Attribute
     {
     }
 }
