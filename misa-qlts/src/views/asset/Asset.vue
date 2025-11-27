@@ -322,7 +322,6 @@ async function handleSave() {
  * CreatedBy: QuanPA - 17/11/2025
  */
 function openAddForm(row) {
-    console.log(row);
     formMode.value = row ? "copy" : "add";
     selectedRow.value = row ? row : null;
     isFormOpen.value = true;

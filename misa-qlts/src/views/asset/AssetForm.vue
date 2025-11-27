@@ -468,7 +468,6 @@ const modalTitle = computed(() => {
  * CreatedBy: QuanPA - 18/11/2025
  */
 function loadEditData(data) {
-    console.log(data);
     localData.value = JSON.parse(JSON.stringify(data));
     generateCode.value = data.assetCode;
     assetName.value = data.assetName;
